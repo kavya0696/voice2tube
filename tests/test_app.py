@@ -10,7 +10,7 @@ class VoiceTubeAppTests(unittest.TestCase):
     def test_home_page(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"VoiceTube", response.data)
+        self.assertIn(b"Voice2Tube", response.data)
         self.assertIn(b"typedCommand", response.data)
 
     def test_health(self):
