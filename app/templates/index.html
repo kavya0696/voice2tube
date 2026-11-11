@@ -1,84 +1,338 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#090a10">
-  <meta name="description" content="Voice2Tube — a voice-controlled YouTube search assistant.">
-  <title>Voice2Tube — Your voice. Your videos.</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#11151b">
+<meta name="description" content="VoiceTube — a voice-controlled YouTube and Gmail assistant.">
+<title>VoiceTube — Voice Controlled AI Assistant</title>
+<style>
+:root{--bg:#11151b;--panel:#191f27;--panel-2:#202833;--line:#303a46;--text:#edf0f3;--muted:#9aa5b1;--soft:#c3ccd5;--accent:#a9b6c8;--accent-2:#7f91a8;--success:#8eae9d;--danger:#c58d8d;--radius:20px;--shadow:0 24px 70px rgba(0,0,0,.24)}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% 0%,rgba(110,128,151,.12),transparent 36%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;align-items:center;justify-content:center;padding:42px 22px}
+button,input,textarea{font:inherit}
+button{cursor:pointer}
+.shell{width:min(1120px,100%);display:grid;grid-template-columns:270px minmax(0,1fr);min-height:680px;background:rgba(24,30,38,.92);border:1px solid rgba(164,179,195,.14);border-radius:28px;overflow:hidden;box-shadow:var(--shadow)}
+.sidebar{padding:32px 24px;background:rgba(17,22,29,.68);border-right:1px solid var(--line);display:flex;flex-direction:column}
+.brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;letter-spacing:-.6px;color:var(--text);text-decoration:none}
+.brand-icon{width:38px;height:38px;border-radius:13px;background:#2a3542;border:1px solid #465465;display:grid;place-items:center;color:#d3dce6;font-size:18px}
+.brand small{display:block;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:2px;margin-top:3px}
+.side-label{font-size:10px;letter-spacing:1.8px;color:#788594;font-weight:700;margin:54px 0 15px}
+.nav-item{width:100%;border:1px solid transparent;background:transparent;color:#aab4bf;padding:13px 14px;border-radius:12px;text-align:left;display:flex;align-items:center;gap:12px;margin-bottom:7px;font-size:13px;transition:.2s}
+.nav-item.active,.nav-item:hover{background:#222c37;border-color:#354252;color:#edf0f3}
+.nav-icon{width:20px;text-align:center;font-size:16px;color:#a9b6c8}
+.sidebar-bottom{margin-top:auto}
+.note-card{border:1px solid #303c49;background:linear-gradient(145deg,rgba(47,60,75,.55),rgba(30,38,48,.45));border-radius:15px;padding:16px}
+.note-card strong{font-size:12px;display:block;margin-bottom:7px}
+.note-card p{margin:0;color:#98a5b2;font-size:11px;line-height:1.6}
+.sidebar-foot{font-size:9px;color:#71808f;letter-spacing:1.5px;margin:22px 0 0 2px}
+.sidebar-foot span{color:#a9b6c8}
+.main{padding:34px 42px 24px;display:flex;flex-direction:column;min-width:0}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:24px;border-bottom:1px solid rgba(130,146,164,.16)}
+.breadcrumb{font-size:12px;color:#7f8b98}.breadcrumb span{padding:0 9px;color:#4d5966}.breadcrumb strong{color:#cbd3dc;font-weight:600}
+.online{font-size:9px;letter-spacing:1.5px;color:#9caeaa;display:flex;align-items:center;gap:8px}.online i{width:6px;height:6px;border-radius:50%;background:#8eae9d;box-shadow:0 0 0 4px rgba(142,174,157,.1)}
+.hero{padding:47px 0 26px}
+.eyebrow{display:flex;align-items:center;gap:10px;color:#9eacba;font-size:9px;letter-spacing:2px;font-weight:700}
+.eyebrow:before{content:"";width:24px;height:1px;background:#8293a6}
+h1{font-size:clamp(34px,4.4vw,52px);letter-spacing:-2.4px;line-height:1.08;margin:20px 0 13px;font-weight:650}
+h1 span{color:#aebcce}
+.hero-copy{font-size:13px;color:#9aa5b1;margin:0;line-height:1.7}
+.workspace{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(250px,.8fr);gap:18px;margin-top:27px}
+.command-card,.feature-card,.email-card{background:linear-gradient(150deg,rgba(33,42,53,.95),rgba(25,32,41,.96));border:1px solid #35404d;border-radius:var(--radius);padding:23px;box-shadow:0 14px 35px rgba(0,0,0,.12)}
+.card-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}
+.card-heading strong{font-size:11px;letter-spacing:1.4px;color:#c2ccd6}
+.card-heading span{font-size:9px;color:#82909e;letter-spacing:1.2px}
+.mic-area{display:flex;flex-direction:column;align-items:center;padding:16px 0 20px}
+.mic-wrap{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#344252 0%,#283440 58%,rgba(40,52,64,.18) 70%);border:1px solid #526174;position:relative}
+.mic-wrap:before,.mic-wrap:after{content:"";position:absolute;inset:-9px;border:1px solid rgba(160,177,197,.16);border-radius:50%}
+.mic-wrap:after{inset:-18px;border-color:rgba(160,177,197,.09)}
+.mic-button{width:66px;height:66px;border:1px solid #728398;border-radius:50%;background:#d5dde5;color:#26323e;display:grid;place-items:center;font-size:24px;box-shadow:0 8px 24px rgba(0,0,0,.22);transition:transform .2s,background .2s}
+.mic-button:hover{transform:translateY(-2px);background:#edf1f5}
+.mic-button.listening{background:#a8c0b3;color:#17251e;animation:pulse 1.3s infinite}
+.mic-button:disabled{opacity:.45;cursor:not-allowed}
+@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(142,174,157,.12),0 8px 24px rgba(0,0,0,.22)}}
+.status{font-size:12px;color:#d3dbe3;margin-top:18px;text-align:center;min-height:18px}
+.hint{font-size:10px;color:#82909e;margin-top:7px;text-align:center}
+.divider-label{display:flex;align-items:center;gap:12px;color:#778493;font-size:9px;letter-spacing:1.5px;margin:0 0 12px}
+.divider-label:before,.divider-label:after{content:"";height:1px;background:#35404c;flex:1}
+.command-form{display:flex;gap:8px}
+.command-input{width:100%;min-width:0;background:#141a21;border:1px solid #3a4654;border-radius:11px;color:#edf0f3;padding:13px 14px;font-size:12px;outline:none;transition:border .2s}
+.command-input:focus{border-color:#8294a9}
+.command-input::placeholder{color:#71808e}
+.submit-button,.open-button{border:1px solid #8495a8;background:#aab8c8;color:#17212b;border-radius:11px;padding:0 17px;font-size:11px;font-weight:700;white-space:nowrap;transition:.2s}
+.submit-button:hover,.open-button:hover{background:#d0d9e2}
+.feature-card{display:flex;flex-direction:column;justify-content:space-between}
+.feature-top{font-size:9px;color:#a2afbd;letter-spacing:1.6px;font-weight:700}
+.feature-card h2{font-size:22px;letter-spacing:-.8px;line-height:1.2;margin:18px 0 10px}
+.feature-card p{font-size:11px;color:#95a1ad;line-height:1.7;margin:0}
+.examples{display:grid;gap:9px;margin-top:21px}
+.example{border:1px solid #35414e;background:rgba(15,20,27,.35);border-radius:10px;padding:10px 12px;font-size:10px;color:#bdc7d1;line-height:1.45}
+.example b{color:#dce3e9;font-weight:600}
+.result-card{display:none;margin-top:19px;border:1px solid #35404d;border-radius:16px;background:#1a222c;padding:17px}
+.result-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
+.result-top strong{font-size:12px}.result-top span{font-size:9px;color:#9aada3;letter-spacing:1px}
+.result-link{display:inline-flex;align-items:center;gap:7px;color:#c8d4df;text-decoration:none;font-size:11px;border-bottom:1px solid #596a7d;padding-bottom:3px}
+.email-card{display:none;margin-top:19px}
+.email-card h3{font-size:16px;margin:0 0 6px}
+.email-card .sub{font-size:11px;color:#96a2ae;margin:0 0 16px}
+.recipient{font-size:10px;color:#aeb9c4;margin-bottom:10px}
+.field-label{display:block;color:#8f9ca9;font-size:9px;letter-spacing:1.3px;margin:13px 0 7px}
+.field{width:100%;background:#141a21;border:1px solid #3a4654;border-radius:10px;color:#edf0f3;padding:12px;font-size:12px;outline:none}
+.field:focus{border-color:#8294a9}
+textarea.field{min-height:145px;resize:vertical;line-height:1.55}
+.email-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
+.secondary-button{border:1px solid #465362;background:transparent;color:#c2ccd6;border-radius:10px;padding:10px 13px;font-size:10px}
+.secondary-button:hover{background:#293441}
+.footer{display:flex;justify-content:space-between;gap:10px;margin-top:auto;padding-top:25px;color:#667482;font-size:9px;letter-spacing:1.4px}
+.footer b{color:#9baabd}
+@media(max-width:850px){.shell{grid-template-columns:1fr}.sidebar{display:none}.main{padding:26px 24px 22px}.workspace{grid-template-columns:1fr}.feature-card{min-height:230px}.hero{padding-top:36px}}
+@media(max-width:520px){body{padding:0}.shell{border-radius:0;min-height:100vh;border:0}.main{padding:22px 17px}.topbar{padding-bottom:18px}.hero{padding-top:31px}h1{font-size:38px}.command-card,.feature-card,.email-card{padding:18px}.command-form{flex-direction:column}.submit-button{padding:13px}.footer{font-size:8px}}
+</style>
 </head>
 <body>
-  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
-  <div class="app-shell">
-    <aside class="sidebar">
-      <a class="brand" href="/" aria-label="Voice2Tube home">
-        <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.8c0-.8.9-1.3 1.6-.9l12.1 6.9a1.4 1.4 0 0 1 0 2.4L6.6 20.1c-.7.4-1.6-.1-1.6-.9V4.8Z" fill="currentColor"/></svg></span>
-        <span>voice<span class="brand-accent">2</span>tube</span>
-      </a>
-      <div class="side-label">WORKSPACE</div>
-      <button class="nav-item active" id="homeNav"><span class="nav-icon">⌂</span> Home</button>
-      <button class="nav-item" id="historyNav"><span class="nav-icon">↺</span> Recent searches</button>
-      <div class="sidebar-bottom">
-        <div class="status-card"><span class="status-dot"></span><div><strong>AI assistant ready</strong><small>Voice input available</small></div></div>
-        <div class="sidebar-foot">MADE TO FIND YOUR FLOW <span>✦</span></div>
-      </div>
-    </aside>
-
-    <main class="main-content">
-      <header class="topbar">
-        <div class="breadcrumb">Workspace <span>/</span> <strong id="crumbCurrent">Home</strong></div>
-        <div class="topbar-right"><span class="live-indicator"><i></i> SYSTEM ONLINE</span><span class="avatar">V</span></div>
-      </header>
-
-      <section class="hero" id="homeView">
-        <div class="eyebrow"><span class="eyebrow-line"></span> YOUR PERSONAL YOUTUBE ASSISTANT</div>
-        <h1>What would you like<br>to <span>watch today?</span></h1>
-        <p class="hero-copy">Just say it. Or type it. I'll find the video and bring it right here.</p>
-
-        <section class="command-panel" aria-label="YouTube voice search">
-          <div class="panel-top"><span class="panel-label"><span class="sparkle">✳</span> VOICE COMMAND</span><span class="shortcut">SPEAK OR TYPE</span></div>
-          <div class="voice-stage">
-            <div class="orb-wrap" id="orbWrap">
-              <div class="orb-ring ring-a"></div><div class="orb-ring ring-b"></div>
-              <button class="mic-button" id="micButton" aria-label="Start voice search"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8"></path></svg></button>
-            </div>
-            <div class="voice-status" id="voiceStatus">Tap the microphone to speak</div>
-            <div class="voice-hint" id="voiceHint">Try “Play lo-fi music” or “Find Python tutorials”</div>
-          </div>
-          <form class="search-form" id="searchForm">
-            <label class="sr-only" for="queryInput">Search YouTube</label>
-            <span class="search-icon">⌕</span>
-            <input id="queryInput" type="text" maxlength="200" placeholder="What do you want to watch?" autocomplete="off">
-            <button class="search-button" type="submit">Search <span>↗</span></button>
-          </form>
-          <div class="panel-footer"><label for="languageSelect">VOICE LANGUAGE</label><select id="languageSelect"><option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="hi-IN">Hindi</option><option value="ta-IN">Tamil</option><option value="te-IN">Telugu</option><option value="bn-IN">Bengali</option></select><span class="privacy-note">⌁ Voice is processed by your browser</span></div>
-        </section>
-
-        <div class="quick-prompts"><span>QUICK SEARCHES</span><button data-query="Lo-fi music for focus">♫ Focus music</button><button data-query="Best travel destinations">✧ Travel inspiration</button><button data-query="Learn Python for beginners">⌘ Learn something</button></div>
-      </section>
-
-      <section class="results-section hidden" id="resultsSection">
-        <div class="section-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR RESULT</div><h2>Found for you</h2></div><button class="text-button" id="newSearchButton">＋ New search</button></div>
-        <div class="result-card">
-          <div class="player-wrap" id="playerWrap"><div class="player-placeholder"><span class="play-symbol">▶</span><p>Your video will appear here</p></div></div>
-          <div class="video-details"><div class="video-tag"><span></span> YOUTUBE VIDEO</div><h3 id="videoTitle">Video title</h3><p id="videoChannel">YouTube</p><a class="watch-link" id="watchLink" href="#" target="_blank" rel="noopener noreferrer">Watch on YouTube <span>↗</span></a></div>
+<div class="shell">
+  <aside class="sidebar">
+    <a class="brand" href="/"><span class="brand-icon">◉</span><span>VoiceTube<small>VOICE CONTROLLED AI</small></span></a>
+    <div class="side-label">YOUR WORKSPACE</div>
+    <button class="nav-item active" type="button"><span class="nav-icon">⌂</span> Assistant</button>
+    <button class="nav-item" type="button" onclick="document.getElementById('typedCommand').focus()"><span class="nav-icon">⌕</span> New command</button>
+    <div class="sidebar-bottom">
+      <div class="note-card"><strong>A little more hands-free.</strong><p>Find music and videos on YouTube, or create a polished email with a simple voice command.</p></div>
+      <div class="sidebar-foot">SIMPLE COMMANDS. SMARTER FLOW. <span>✦</span></div>
+    </div>
+  </aside>
+  <main class="main">
+    <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Assistant</strong></div><div class="online"><i></i> READY WHEN YOU ARE</div></header>
+    <section class="hero">
+      <div class="eyebrow">YOUR PERSONAL VOICE ASSISTANT</div>
+      <h1>Speak naturally.<br><span>Get things done.</span></h1>
+      <p class="hero-copy">Play a song on YouTube or create an email — just tell VoiceTube what you need.</p>
+    </section>
+    <section class="workspace">
+      <div class="command-card">
+        <div class="card-heading"><strong>VOICE COMMAND</strong><span>MICROPHONE</span></div>
+        <div class="mic-area">
+          <div class="mic-wrap"><button id="mic" class="mic-button" type="button" aria-label="Start voice command">🎙</button></div>
+          <div id="status" class="status" role="status" aria-live="polite">Tap the microphone to start speaking</div>
+          <div class="hint" id="voiceHint">Allow microphone access when your browser asks</div>
         </div>
-      </section>
+        <div class="divider-label">OR TYPE YOUR COMMAND</div>
+        <form class="command-form" id="commandForm">
+          <input class="command-input" id="typedCommand" type="text" maxlength="300" placeholder="e.g. Play Believer by Imagine Dragons" autocomplete="off" aria-label="Type your command">
+          <button class="submit-button" type="submit">Run command ↗</button>
+        </form>
+        <div class="result-card" id="youtubeResult">
+          <div class="result-top"><strong>YouTube command received</strong><span>READY TO PLAY</span></div>
+          <p style="font-size:11px;color:#9aa6b2;margin:0 0 12px">Your video is opening in a new tab.</p>
+          <a class="result-link" id="youtubeLink" href="#" target="_blank" rel="noopener noreferrer">Open YouTube video ↗</a>
+        </div>
+        <div class="email-card" id="editor">
+          <h3>Your email is ready</h3>
+          <p class="sub">Review the draft, make any edits, then open it in Gmail.</p>
+          <div class="recipient" id="recipient"></div>
+          <label class="field-label" for="subject">SUBJECT</label>
+          <input class="field" id="subject" placeholder="Email subject">
+          <label class="field-label" for="body">MESSAGE</label>
+          <textarea class="field" id="body" placeholder="Email body"></textarea>
+          <div class="email-actions">
+            <button id="open" class="open-button" type="button">Open in Gmail ↗</button>
+            <button id="regen" class="secondary-button" type="button">Keep editing</button>
+          </div>
+        </div>
+      </div>
+      <aside class="feature-card">
+        <div>
+          <div class="feature-top">WHAT CAN I DO FOR YOU?</div>
+          <h2>One assistant.<br>Two useful actions.</h2>
+          <p>Use a natural phrase. You can speak it or type it in the command box.</p>
+        </div>
+        <div class="examples">
+          <div class="example"><b>♪ YouTube</b><br>“Play a song” or “Play Believer”</div>
+          <div class="example"><b>✉ Gmail</b><br>“Create an email to my professor about an assignment extension”</div>
+        </div>
+      </aside>
+    </section>
+    <footer class="footer"><span>VOICETUBE <b>✳</b></span><span>YOUR VOICE. YOUR WORKFLOW.</span></footer>
+  </main>
+</div>
+<script>
+const $ = id => document.getElementById(id);
+const mic = $("mic");
+const status = $("status");
+const editor = $("editor");
+const recipient = $("recipient");
+const subject = $("subject");
+const body = $("body");
+const typedCommand = $("typedCommand");
+const youtubeResult = $("youtubeResult");
+const youtubeLink = $("youtubeLink");
+const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+let listening = false;
+let lastCommand = "";
+let emailGenerated = false;
+let generatingEmail = false;
+let youtubeTab = null;
 
-      <section class="history-section hidden" id="historyView">
-        <div class="section-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR ACTIVITY</div><h2>Recent searches</h2><p class="history-subtitle">Pick up where you left off.</p></div><button class="text-button" id="clearHistoryButton">Clear history</button></div>
-        <div class="history-list" id="historyList"></div>
-        <div class="empty-history hidden" id="emptyHistory"><span>◷</span><h3>No searches yet</h3><p>Your recent YouTube searches will show up here.</p><button class="search-button" id="historyHomeButton">Start exploring ↗</button></div>
-      </section>
+if (!SR) {
+  status.textContent = "Voice recognition is unavailable in this browser. You can type a command below.";
+  $("voiceHint").textContent = "Try Chrome or Edge for microphone support";
+  mic.disabled = true;
+} else {
+  recognition = new SR();
+  recognition.lang = "en-US";
+  recognition.continuous = false;
+  recognition.interimResults = false;
 
-      <footer class="page-footer"><span>VOICE2TUBE <b>✳</b></span><span>SEARCH LESS. WATCH MORE.</span></footer>
-    </main>
-  </div>
-  <div class="toast" id="toast" role="status" aria-live="polite"></div>
-  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  recognition.onstart = () => {
+    listening = true;
+    mic.classList.add("listening");
+    status.textContent = "Listening… speak your command";
+  };
+  recognition.onend = () => {
+    listening = false;
+    mic.classList.remove("listening");
+  };
+  recognition.onerror = e => {
+    listening = false;
+    mic.classList.remove("listening");
+    status.textContent = "Voice error: " + e.error + ". You can type your command instead.";
+  };
+  recognition.onresult = e => {
+    const text = e.results[0][0].transcript.trim();
+    if (!text) {
+      status.textContent = "No command detected. Please try again.";
+      return;
+    }
+    lastCommand = text;
+    typedCommand.value = text;
+    processCommand(text);
+  };
+  mic.onclick = () => {
+    if (listening) return;
+    try {
+      recognition.start();
+    } catch (e) {
+      status.textContent = "Microphone is busy. Please try again in a moment.";
+    }
+  };
+}
+
+$("commandForm").addEventListener("submit", event => {
+  event.preventDefault();
+  const command = typedCommand.value.trim();
+  if (!command) {
+    status.textContent = "Please type a command first.";
+    typedCommand.focus();
+    return;
+  }
+  lastCommand = command;
+  processCommand(command);
+});
+
+function isGmail(command) {
+  const hasCreate = /\bcreate\b/i.test(command);
+  const hasEmail = /\bemail\b/i.test(command);
+  return hasCreate && hasEmail;
+}
+
+function isYouTube(command) {
+  return !isGmail(command) && command.trim().length > 0;
+}
+
+async function processCommand(command) {
+  const gmail = isGmail(command);
+  const youtube = isYouTube(command);
+
+  if (gmail) {
+    if (generatingEmail) {
+      status.textContent = "Your email is already being generated…";
+      return;
+    }
+    if (emailGenerated && command === lastCommand) {
+      status.textContent = "Email already generated. You can edit the draft below.";
+      return;
+    }
+    generatingEmail = true;
+    youtubeResult.style.display = "none";
+    status.textContent = "Creating your email…";
+    try {
+      const response = await fetch("/agent", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({command: command})
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw Error(data.message || "Email request failed");
+      showEmail(data);
+      emailGenerated = true;
+    } catch (error) {
+      console.error(error);
+      status.textContent = error.message || "Email generation failed. Please try again.";
+    } finally {
+      generatingEmail = false;
+    }
+    return;
+  }
+
+  if (youtube) {
+    editor.style.display = "none";
+    status.textContent = "Finding your video…";
+    try {
+      const response = await fetch("/youtube/play", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({command: command})
+      });
+      const data = await response.json();
+      if (!response.ok || !data.success) throw Error(data.message || "YouTube request failed");
+      playYouTube(data);
+    } catch (error) {
+      console.error(error);
+      status.textContent = error.message || "YouTube request failed. Please try again.";
+    }
+    return;
+  }
+}
+
+function showEmail(data) {
+  recipient.dataset.email = data.recipient || "";
+  recipient.textContent = data.recipient ? "TO: " + data.recipient : "Recipient not specified";
+  subject.value = data.subject || "";
+  body.value = data.body || "";
+  editor.style.display = "block";
+  status.textContent = "Email draft ready. Review and edit it before opening Gmail.";
+  editor.scrollIntoView({behavior: "smooth", block: "nearest"});
+}
+
+$("open").onclick = () => {
+  const url = "https://mail.google.com/mail/u/0/?" + new URLSearchParams({
+    view: "cm",
+    fs: "1",
+    to: recipient.dataset.email || "",
+    su: subject.value,
+    body: body.value
+  });
+  const win = window.open(url, "VoiceTubeGmail");
+  if (!win) status.textContent = "Please allow popups for this site to open Gmail.";
+};
+
+$("regen").onclick = () => {
+  status.textContent = "Edit the email draft above, then open it in Gmail.";
+};
+
+function playYouTube(data) {
+  youtubeLink.href = data.url;
+  youtubeResult.style.display = "block";
+  if (!youtubeTab || youtubeTab.closed) {
+    youtubeTab = window.open(data.url, "VoiceTubeYouTube");
+  } else {
+    youtubeTab.location.href = data.url;
+    youtubeTab.focus();
+  }
+  status.textContent = youtubeTab ? "Your video is opening in YouTube." : "Allow popups, or use the Open YouTube video link below.";
+  youtubeResult.scrollIntoView({behavior: "smooth", block: "nearest"});
+}
+</script>
 </body>
 </html>
