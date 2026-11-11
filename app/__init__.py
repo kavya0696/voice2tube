@@ -47,7 +47,7 @@ def create_app():
 
         return jsonify({
             "status": "ok",
-            "service": "Nova AI Agent"
+            "service": "Voice2Tube"
         })
 
 
