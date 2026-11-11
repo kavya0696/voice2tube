@@ -1,6 +1,6 @@
-# VoiceTube — Voice Controlled YouTube & Gmail Assistant
+# Voice2Tube — Voice Controlled YouTube & Gmail Assistant
 
-VoiceTube is a Flask-based voice assistant built from the original `agent` project. It keeps the original YouTube playback and Gmail email-drafting modules, with a refreshed, responsive interface.
+Voice2Tube is a Flask-based voice assistant built from the original `agent` project. It keeps the original YouTube playback and Gmail email-drafting modules, with a refreshed, responsive interface.
 
 ## Features
 
@@ -17,7 +17,7 @@ VoiceTube is a Flask-based voice assistant built from the original `agent` proje
 - `Play lo-fi music`
 - `Create an email to professor@example.com asking for an assignment extension`
 
-For Gmail, include the words **create email** in the command. For YouTube, you can type a song/video name or say a command such as **play [name]**.
+For Gmail, mention **email**, **mail**, or **Gmail** in the command. For YouTube, you can type a song/video name or say a command such as **play [name]**.
 
 ## Tech stack
 
@@ -86,7 +86,7 @@ Never commit real API keys. Use Render's Environment settings for deployed secre
 
 ## Browser and service notes
 
-- Voice input depends on browser support for Web Speech API and microphone permission. Chrome or Edge is recommended.
+- Voice input uses the browser Web Speech API. Use the latest Chrome or Edge, allow microphone access for the site, and keep an internet connection available for browser speech recognition. The app displays specific messages for blocked permission, missing microphone, network errors, and unsupported browsers.
 - Text commands are available if speech recognition is unavailable.
 - YouTube lookup uses the original project's public search-page parsing approach; it may be affected by YouTube page changes or request restrictions.
 - Gmail draft generation requires a valid Gemini API key and internet access.
