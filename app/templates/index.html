@@ -399,7 +399,7 @@ $("open").addEventListener("click", () => {
     su: subject.value,
     body: body.value
   });
-  const popup = window.open(url, "_blank", "noopener");
+  const popup = window.open(url, "_blank");
   if (!popup) setStatus("Please allow pop-ups for this site to open Gmail.");
 });
 
