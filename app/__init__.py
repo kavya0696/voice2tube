@@ -117,9 +117,17 @@ def create_app():
 
         except Exception as e:
 
+            message = str(e)
+            if "GEMINI_API_KEY is missing" in message:
+                message = (
+                    "Gmail drafting is not configured yet. Add GEMINI_API_KEY "
+                    "to your Render environment variables (and your local environment "
+                    "when testing locally), then restart or redeploy Voice2Tube."
+                )
+
             return jsonify({
                 "success": False,
-                "message": str(e)
+                "message": message
             }), 500
 
 
