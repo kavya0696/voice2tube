@@ -155,6 +155,17 @@ textarea.field{min-height:145px;resize:vertical;line-height:1.55}
 }
 @media(max-width:380px){.examples{grid-template-columns:1fr}.online{font-size:8px}.breadcrumb{font-size:11px}}
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
+.recent-searches{margin-top:19px;padding-top:15px;border-top:1px solid #eee7f0}
+.recent-heading{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.recent-heading strong{color:#8f8195;font-size:9px;letter-spacing:1.3px}
+.clear-recent{padding:4px 0;border:0;background:transparent;color:#a58caf;font-size:10px}
+.clear-recent:hover{color:#7546ae}
+.recent-list{display:flex;flex-wrap:wrap;gap:7px}
+.recent-item{max-width:100%;display:inline-flex;align-items:center;gap:7px;padding:8px 11px;border:1px solid #eee6f1;border-radius:999px;background:rgba(255,255,255,.7);color:#76677e;font-size:10px;transition:background .2s,border-color .2s}
+.recent-item:hover{background:#f5edf9;border-color:#dfcce9}
+.recent-item span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:220px}
+.recent-empty{color:#b0a4b4;font-size:10px}
+@media(max-width:650px){.recent-item span{max-width:210px}}
 </style>
 </head>
 <body>
@@ -188,6 +199,15 @@ textarea.field{min-height:145px;resize:vertical;line-height:1.55}
           <input class="command-input" id="typedCommand" type="text" maxlength="300" placeholder="Try “Play my favourite song”" autocomplete="off" aria-label="Type your command">
           <button class="submit-button" type="submit">Send command&nbsp; ↗</button>
         </form>
+        <section class="recent-searches" id="recentSearches" aria-label="Recent YouTube searches">
+          <div class="recent-heading">
+            <strong>RECENT SEARCHES</strong>
+            <button class="clear-recent" id="clearRecent" type="button">Clear history</button>
+          </div>
+          <div class="recent-list" id="recentList">
+            <span class="recent-empty">Your recent YouTube searches will appear here.</span>
+          </div>
+        </section>
         <div class="result-card" id="youtubeResult">
           <div class="result-top"><strong>YouTube command received</strong><span>READY TO PLAY</span></div>
           <p style="font-size:11px;color:#9b8fa0;margin:0 0 12px">Voice2Tube will take you directly to the matching YouTube video.</p>
@@ -259,6 +279,73 @@ const speechErrors = {
   "language-not-supported": "The selected recognition language is unavailable. Try changing the browser language or using Chrome.",
   "aborted": "Voice recognition was stopped."
 };
+
+
+const RECENT_SEARCHES_KEY = "voice2tube_recent_searches";
+const MAX_RECENT_SEARCHES = 6;
+
+function readRecentSearches() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(RECENT_SEARCHES_KEY) || "[]");
+    return Array.isArray(saved)
+      ? saved.filter((item) => typeof item === "string").slice(0, MAX_RECENT_SEARCHES)
+      : [];
+  } catch (error) {
+    console.warn("Could not read recent searches:", error);
+    return [];
+  }
+}
+
+function renderRecentSearches() {
+  const list = $("recentList");
+  if (!list) return;
+  const searches = readRecentSearches();
+  list.replaceChildren();
+
+  if (!searches.length) {
+    const empty = document.createElement("span");
+    empty.className = "recent-empty";
+    empty.textContent = "Your recent YouTube searches will appear here.";
+    list.appendChild(empty);
+    return;
+  }
+
+  searches.forEach((query) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "recent-item";
+    button.title = "Search again: " + query;
+    const icon = document.createElement("span");
+    icon.setAttribute("aria-hidden", "true");
+    icon.textContent = "↻";
+    const label = document.createElement("span");
+    label.textContent = query;
+    button.append(icon, label);
+    button.addEventListener("click", () => {
+      typedCommand.value = query;
+      processCommand(query);
+    });
+    list.appendChild(button);
+  });
+}
+
+function saveRecentSearch(query) {
+  const cleanQuery = query.trim();
+  if (!cleanQuery || isGmail(cleanQuery)) return;
+  try {
+    const searches = readRecentSearches().filter(
+      (item) => item.toLowerCase() !== cleanQuery.toLowerCase()
+    );
+    searches.unshift(cleanQuery);
+    localStorage.setItem(
+      RECENT_SEARCHES_KEY,
+      JSON.stringify(searches.slice(0, MAX_RECENT_SEARCHES))
+    );
+    renderRecentSearches();
+  } catch (error) {
+    console.warn("Could not save recent search:", error);
+  }
+}
 
 function setListening(active) {
   listening = active;
@@ -332,6 +419,7 @@ async function processCommand(command) {
     if (!response.ok || !data.success) {
       throw new Error(data.message || "YouTube could not find a matching video.");
     }
+    saveRecentSearch(cleanCommand);
     showYouTubeResult(data);
   } catch (error) {
     console.error("YouTube request failed:", error);
@@ -475,6 +563,17 @@ window.addEventListener("error", (event) => {
   console.error("Voice2Tube page error:", event.message, event.filename, event.lineno);
   setStatus("A page script error occurred. Open the browser console for details.", "Please share the first red error from Chrome DevTools Console.");
 });
+
+$("clearRecent").addEventListener("click", () => {
+  try {
+    localStorage.removeItem(RECENT_SEARCHES_KEY);
+  } catch (error) {
+    console.warn("Could not clear recent searches:", error);
+  }
+  renderRecentSearches();
+});
+
+renderRecentSearches();
 
 $("commandForm").addEventListener("submit", (event) => {
   event.preventDefault();
