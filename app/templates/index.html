@@ -3,233 +3,194 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#11151b">
-<meta name="description" content="Voice2Tube — a voice-controlled YouTube and Gmail assistant.">
-<title>Voice2Tube — Voice Controlled AI Assistant</title>
+<meta name="theme-color" content="#f4edf7">
+<meta name="description" content="Voice2Tube — a calm, voice-first assistant for YouTube and Gmail.">
+<title>Voice2Tube — Your voice, your flow</title>
 <style>
-:root{--bg:#11151b;--panel:#191f27;--panel-2:#202833;--line:#303a46;--text:#edf0f3;--muted:#9aa5b1;--soft:#c3ccd5;--accent:#a9b6c8;--accent-2:#7f91a8;--success:#8eae9d;--danger:#c58d8d;--radius:20px;--shadow:0 24px 70px rgba(0,0,0,.24)}
+:root {
+  --ink:#25212b; --muted:#8d8493; --purple:#a96be0; --purple-dark:#8750c5;
+  --lavender:#eee4f6; --line:#eee8f0; --white:rgba(255,255,255,.88);
+  --shadow:0 24px 80px rgba(89,62,102,.13); --radius:24px;
+}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:radial-gradient(ellipse at 75% 0%,rgba(110,128,151,.12),transparent 36%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;align-items:center;justify-content:center;padding:42px 22px}
+html{scroll-behavior:smooth}
+body{
+  margin:0;min-height:100vh;padding:34px;
+  color:var(--ink);font-family:Inter,ui-sans-serif,system-ui,-apple-system,"Segoe UI",sans-serif;
+  background:linear-gradient(125deg,#f8e8e5 0%,#f3eafa 48%,#e9e4f7 100%);
+}
 button,input,textarea{font:inherit}
 button{cursor:pointer}
-.shell{width:min(1120px,100%);display:grid;grid-template-columns:270px minmax(0,1fr);min-height:680px;background:rgba(24,30,38,.92);border:1px solid rgba(164,179,195,.14);border-radius:28px;overflow:hidden;box-shadow:var(--shadow)}
-.sidebar{padding:32px 24px;background:rgba(17,22,29,.68);border-right:1px solid var(--line);display:flex;flex-direction:column}
-.brand{display:flex;align-items:center;gap:12px;font-size:20px;font-weight:700;letter-spacing:-.6px;color:var(--text);text-decoration:none}
-.brand-icon{width:38px;height:38px;border-radius:13px;background:#2a3542;border:1px solid #465465;display:grid;place-items:center;color:#d3dce6;font-size:18px}
-.brand small{display:block;color:var(--muted);font-size:10px;font-weight:600;letter-spacing:2px;margin-top:3px}
-.side-label{font-size:10px;letter-spacing:1.8px;color:#788594;font-weight:700;margin:54px 0 15px}
-.nav-item{width:100%;border:1px solid transparent;background:transparent;color:#aab4bf;padding:13px 14px;border-radius:12px;text-align:left;display:flex;align-items:center;gap:12px;margin-bottom:7px;font-size:13px;transition:.2s}
-.nav-item.active,.nav-item:hover{background:#222c37;border-color:#354252;color:#edf0f3}
-.nav-icon{width:20px;text-align:center;font-size:16px;color:#a9b6c8}
-.sidebar-bottom{margin-top:auto}
-.note-card{border:1px solid #303c49;background:linear-gradient(145deg,rgba(47,60,75,.55),rgba(30,38,48,.45));border-radius:15px;padding:16px}
-.note-card strong{font-size:12px;display:block;margin-bottom:7px}
-.note-card p{margin:0;color:#98a5b2;font-size:11px;line-height:1.6}
-.sidebar-foot{font-size:9px;color:#71808f;letter-spacing:1.5px;margin:22px 0 0 2px}
-.sidebar-foot span{color:#a9b6c8}
-.main{padding:34px 42px 24px;display:flex;flex-direction:column;min-width:0}
-.topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:24px;border-bottom:1px solid rgba(130,146,164,.16)}
-.breadcrumb{font-size:12px;color:#7f8b98}.breadcrumb span{padding:0 9px;color:#4d5966}.breadcrumb strong{color:#cbd3dc;font-weight:600}
-.online{font-size:9px;letter-spacing:1.5px;color:#9caeaa;display:flex;align-items:center;gap:8px}.online i{width:6px;height:6px;border-radius:50%;background:#8eae9d;box-shadow:0 0 0 4px rgba(142,174,157,.1)}
-.hero{padding:47px 0 26px}
-.eyebrow{display:flex;align-items:center;gap:10px;color:#9eacba;font-size:9px;letter-spacing:2px;font-weight:700}
-.eyebrow:before{content:"";width:24px;height:1px;background:#8293a6}
-h1{font-size:clamp(34px,4.4vw,52px);letter-spacing:-2.4px;line-height:1.08;margin:20px 0 13px;font-weight:650}
-h1 span{color:#aebcce}
-.hero-copy{font-size:13px;color:#9aa5b1;margin:0;line-height:1.7}
-.workspace{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(250px,.8fr);gap:18px;margin-top:27px}
-.command-card,.feature-card,.email-card{background:linear-gradient(150deg,rgba(33,42,53,.95),rgba(25,32,41,.96));border:1px solid #35404d;border-radius:var(--radius);padding:23px;box-shadow:0 14px 35px rgba(0,0,0,.12)}
-.card-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:17px}
-.card-heading strong{font-size:11px;letter-spacing:1.4px;color:#c2ccd6}
-.card-heading span{font-size:9px;color:#82909e;letter-spacing:1.2px}
-.mic-area{display:flex;flex-direction:column;align-items:center;padding:16px 0 20px}
-.mic-wrap{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#344252 0%,#283440 58%,rgba(40,52,64,.18) 70%);border:1px solid #526174;position:relative}
-.mic-wrap:before,.mic-wrap:after{content:"";position:absolute;inset:-9px;border:1px solid rgba(160,177,197,.16);border-radius:50%;pointer-events:none}
-.mic-wrap:after{inset:-18px;border-color:rgba(160,177,197,.09);pointer-events:none}
-.mic-button{position:relative;z-index:1;width:66px;height:66px;border:1px solid #728398;border-radius:50%;background:#d5dde5;color:#26323e;display:grid;place-items:center;font-size:24px;box-shadow:0 8px 24px rgba(0,0,0,.22);transition:transform .2s,background .2s}
-.mic-button:hover{transform:translateY(-2px);background:#edf1f5}
-.mic-button.listening{background:#a8c0b3;color:#17251e;animation:pulse 1.3s infinite}
+.app-shell{
+  width:min(1280px,100%);min-height:calc(100vh - 68px);margin:0 auto;
+  display:grid;grid-template-columns:248px minmax(0,1fr);
+  overflow:hidden;border:1px solid rgba(255,255,255,.9);border-radius:32px;
+  background:rgba(255,255,255,.48);box-shadow:var(--shadow);backdrop-filter:blur(20px);
+}
+.sidebar{
+  display:flex;flex-direction:column;padding:30px 22px;
+  background:rgba(255,255,255,.56);border-right:1px solid rgba(221,211,228,.8);
+}
+.brand{display:flex;align-items:center;gap:11px;text-decoration:none;color:var(--ink);font-size:19px;font-weight:750;letter-spacing:-.7px}
+.brand-mark{
+  width:40px;height:40px;display:grid;place-items:center;border-radius:14px;
+  color:white;font-size:19px;background:linear-gradient(145deg,#c58be9,#8650ca);
+  box-shadow:0 7px 18px rgba(155,99,205,.22)
+}
+.brand small{display:block;margin-top:3px;color:#9a8da1;font-size:9px;letter-spacing:1.8px;font-weight:700}
+.side-caption{margin:48px 0 13px 10px;color:#a69aa9;font-size:9px;font-weight:750;letter-spacing:1.8px}
+.nav-item{
+  display:flex;align-items:center;gap:12px;width:100%;margin:0 0 7px;padding:13px 14px;
+  color:#776e7d;text-align:left;font-size:13px;border:1px solid transparent;border-radius:14px;background:transparent;transition:.2s
+}
+.nav-item .nav-icon{width:20px;text-align:center;font-size:17px;color:#a78db7}
+.nav-item:hover,.nav-item.active{color:#6f3da0;background:#f1e7f8;border-color:#e9d9f3}
+.sidebar-spacer{flex:1}
+.tip-card{padding:17px;border:1px solid #eadff0;border-radius:18px;background:linear-gradient(145deg,#fff,#f7f0fa)}
+.tip-icon{width:31px;height:31px;display:grid;place-items:center;border-radius:11px;background:#f0e4fa;color:#995fc7;margin-bottom:12px}
+.tip-card strong{font-size:12px}.tip-card p{margin:7px 0 0;color:#928798;font-size:11px;line-height:1.65}
+.sidebar-foot{margin:20px 0 0 3px;color:#a89baa;font-size:9px;letter-spacing:1.3px}
+.main{min-width:0;padding:30px 42px 24px;display:flex;flex-direction:column}
+.topbar{display:flex;justify-content:space-between;align-items:center;padding-bottom:19px;border-bottom:1px solid rgba(217,205,224,.7)}
+.breadcrumb{font-size:12px;color:#9a8fa0}.breadcrumb strong{color:#514758;font-weight:650}.breadcrumb span{padding:0 8px;color:#c1b5c8}
+.online{display:flex;align-items:center;gap:8px;color:#8e8293;font-size:9px;font-weight:700;letter-spacing:1.2px}
+.online i{width:7px;height:7px;border-radius:50%;background:#91b5a0;box-shadow:0 0 0 4px rgba(145,181,160,.15)}
+.hero{padding:34px 0 18px}
+.eyebrow{display:flex;align-items:center;gap:9px;color:#a17bb4;font-size:9px;font-weight:800;letter-spacing:2px}
+.eyebrow:before{content:"";width:22px;height:1px;background:#bd91d3}
+h1{margin:13px 0 8px;font-size:clamp(31px,3.7vw,46px);line-height:1.1;letter-spacing:-2px;font-weight:730}
+h1 span{color:#a66acb}
+.hero-copy{margin:0;color:#928798;font-size:13px;line-height:1.7}
+.workspace{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(260px,.88fr);gap:19px;margin-top:19px;align-items:stretch}
+.command-card,.feature-card,.email-card{
+  min-width:0;border:1px solid rgba(255,255,255,.95);border-radius:var(--radius);
+  background:var(--white);box-shadow:0 10px 35px rgba(93,69,104,.07);padding:22px
+}
+.card-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.card-heading strong{font-size:10px;letter-spacing:1.5px;color:#65586d}
+.card-heading span{font-size:9px;color:#ad9eb2;letter-spacing:1.2px}
+.mic-area{display:flex;flex-direction:column;align-items:center;padding:8px 0 18px}
+.mic-orb{
+  width:176px;height:176px;display:grid;place-items:center;position:relative;border-radius:50%;
+  background:
+   radial-gradient(circle at 32% 25%,rgba(255,255,255,.98),transparent 22%),
+   radial-gradient(circle at 65% 70%,rgba(194,134,234,.8),transparent 32%),
+   radial-gradient(circle at 35% 65%,rgba(128,91,211,.9),transparent 38%),
+   radial-gradient(circle at 50% 45%,#f5dffb 0%,#c99be9 40%,#9a67d0 70%,#7546ae 100%);
+  box-shadow:inset -15px -18px 28px rgba(92,54,147,.18),inset 12px 12px 24px rgba(255,255,255,.8),0 18px 40px rgba(161,108,199,.22)
+}
+.mic-orb:before,.mic-orb:after{content:"";position:absolute;border-radius:50%;pointer-events:none}
+.mic-orb:before{inset:-10px;border:1px solid rgba(176,139,198,.2)}
+.mic-orb:after{inset:-20px;border:1px solid rgba(176,139,198,.12)}
+.orb-gloss{position:absolute;inset:15px 23px 25px 18px;border-radius:50%;border:2px solid rgba(255,255,255,.42);transform:rotate(-28deg);filter:blur(.3px)}
+.mic-button{
+  position:relative;z-index:2;width:58px;height:58px;border:1px solid rgba(255,255,255,.7);
+  border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.88);
+  color:#8d55bf;font-size:22px;box-shadow:0 7px 20px rgba(93,56,127,.16);transition:transform .2s,background .2s
+}
+.mic-button:hover{transform:scale(1.06);background:#fff}
+.mic-button.listening{background:#f0e4fa;color:#7842ad;animation:listenPulse 1.35s infinite}
 .mic-button:disabled{opacity:.45;cursor:not-allowed}
-@keyframes pulse{50%{box-shadow:0 0 0 12px rgba(142,174,157,.12),0 8px 24px rgba(0,0,0,.22)}}
-.status{font-size:12px;color:#d3dbe3;margin-top:18px;text-align:center;min-height:18px}
-.hint{font-size:10px;color:#82909e;margin-top:7px;text-align:center}
-.divider-label{display:flex;align-items:center;gap:12px;color:#778493;font-size:9px;letter-spacing:1.5px;margin:0 0 12px}
-.divider-label:before,.divider-label:after{content:"";height:1px;background:#35404c;flex:1}
+@keyframes listenPulse{50%{box-shadow:0 0 0 11px rgba(171,116,211,.14),0 7px 20px rgba(93,56,127,.16)}}
+.status{min-height:18px;margin-top:20px;text-align:center;color:#64586b;font-size:12px;font-weight:600}
+.hint{margin-top:7px;text-align:center;color:#a69aa9;font-size:10px}
+.divider-label{display:flex;align-items:center;gap:12px;margin:0 0 11px;color:#a79aaa;font-size:9px;letter-spacing:1.3px}
+.divider-label:before,.divider-label:after{content:"";height:1px;flex:1;background:#eee7f0}
 .command-form{display:flex;gap:8px}
-.command-input{width:100%;min-width:0;background:#141a21;border:1px solid #3a4654;border-radius:11px;color:#edf0f3;padding:13px 14px;font-size:12px;outline:none;transition:border .2s}
-.command-input:focus{border-color:#8294a9}
-.command-input::placeholder{color:#71808e}
-.submit-button,.open-button{border:1px solid #8495a8;background:#aab8c8;color:#17212b;border-radius:11px;padding:0 17px;font-size:11px;font-weight:700;white-space:nowrap;transition:.2s}
-.submit-button:hover,.open-button:hover{background:#d0d9e2}
-.feature-card{display:flex;flex-direction:column;justify-content:space-between}
-.feature-top{font-size:9px;color:#a2afbd;letter-spacing:1.6px;font-weight:700}
-.feature-card h2{font-size:22px;letter-spacing:-.8px;line-height:1.2;margin:18px 0 10px}
-.feature-card p{font-size:11px;color:#95a1ad;line-height:1.7;margin:0}
-.examples{display:grid;gap:9px;margin-top:21px}
-.example{border:1px solid #35414e;background:rgba(15,20,27,.35);border-radius:10px;padding:10px 12px;font-size:10px;color:#bdc7d1;line-height:1.45}
-.example b{color:#dce3e9;font-weight:600}
-.result-card{display:none;margin-top:19px;border:1px solid #35404d;border-radius:16px;background:#1a222c;padding:17px}
-.result-top{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:10px}
-.result-top strong{font-size:12px}.result-top span{font-size:9px;color:#9aada3;letter-spacing:1px}
-.result-link{display:inline-flex;align-items:center;gap:7px;color:#c8d4df;text-decoration:none;font-size:11px;border-bottom:1px solid #596a7d;padding-bottom:3px}
-.email-card{display:none;margin-top:19px}
-.email-card h3{font-size:16px;margin:0 0 6px}
-.email-card .sub{font-size:11px;color:#96a2ae;margin:0 0 16px}
-.recipient{font-size:10px;color:#aeb9c4;margin-bottom:10px}
-.field-label{display:block;color:#8f9ca9;font-size:9px;letter-spacing:1.3px;margin:13px 0 7px}
-.field{width:100%;background:#141a21;border:1px solid #3a4654;border-radius:10px;color:#edf0f3;padding:12px;font-size:12px;outline:none}
-.field:focus{border-color:#8294a9}
+.command-input,.field{
+  width:100%;min-width:0;padding:13px 14px;border:1px solid #ece4ef;border-radius:13px;
+  outline:none;background:#faf8fb;color:#403747;font-size:12px;transition:border .2s,box-shadow .2s
+}
+.command-input::placeholder,.field::placeholder{color:#b5aab9}
+.command-input:focus,.field:focus{border-color:#c29bd9;box-shadow:0 0 0 3px rgba(178,128,211,.1)}
+.submit-button,.open-button{
+  border:0;border-radius:13px;padding:0 17px;white-space:nowrap;
+  color:#fff;background:linear-gradient(135deg,#bd83e5,#9254cf);
+  box-shadow:0 7px 16px rgba(158,97,204,.2);font-size:11px;font-weight:700;transition:transform .2s,filter .2s
+}
+.submit-button:hover,.open-button:hover{transform:translateY(-1px);filter:brightness(1.04)}
+.feature-card{display:flex;flex-direction:column;justify-content:space-between;background:linear-gradient(150deg,rgba(255,255,255,.94),rgba(250,245,252,.94))}
+.feature-top{color:#a27cb2;font-size:9px;font-weight:800;letter-spacing:1.6px}
+.feature-card h2{margin:15px 0 9px;font-size:23px;line-height:1.2;letter-spacing:-.8px}
+.feature-card p{margin:0;color:#988c9e;font-size:11px;line-height:1.7}
+.feature-illustration{height:130px;display:grid;place-items:center;margin:10px 0 6px}
+.feature-illustration .mini-orb{width:104px;height:104px;border-radius:50%;background:radial-gradient(circle at 30% 25%,#fff 0%,#e8c9f7 24%,#b27bdd 55%,#8050bf 100%);box-shadow:inset -9px -12px 20px rgba(81,43,128,.2),0 13px 28px rgba(154,101,193,.18);position:relative}
+.mini-orb:after{content:"";position:absolute;inset:15px;border:1px solid rgba(255,255,255,.48);border-radius:50%;transform:rotate(35deg) scaleX(.7)}
+.examples{display:grid;gap:9px;margin-top:16px}
+.example{padding:12px 13px;border:1px solid #eee6f1;border-radius:13px;background:rgba(255,255,255,.72);color:#7f7386;font-size:10px;line-height:1.5}
+.example b{color:#5b4a65;font-size:10px;font-weight:750}
+.result-card{display:none;margin-top:17px;padding:16px;border:1px solid #eee4f2;border-radius:16px;background:#fbf8fc}
+.result-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:10px}
+.result-top strong{font-size:12px}.result-top span{font-size:9px;color:#8eaa99;letter-spacing:1px}
+.result-link{display:inline-flex;gap:7px;color:#8b50b9;text-decoration:none;font-size:11px;border-bottom:1px solid #c5a3d8;padding-bottom:3px}
+.email-card{display:none;margin-top:17px;background:#fff}
+.email-card h3{margin:0 0 6px;font-size:16px}.email-card .sub{margin:0 0 16px;color:#9b8fa0;font-size:11px}
+.recipient{margin-bottom:10px;color:#8f8195;font-size:10px}
+.field-label{display:block;margin:13px 0 7px;color:#9b829f;font-size:9px;letter-spacing:1.3px}
 textarea.field{min-height:145px;resize:vertical;line-height:1.55}
 .email-actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}
-.secondary-button{border:1px solid #465362;background:transparent;color:#c2ccd6;border-radius:10px;padding:10px 13px;font-size:10px}
-.secondary-button:hover{background:#293441}
-.footer{display:flex;justify-content:space-between;gap:10px;margin-top:auto;padding-top:25px;color:#667482;font-size:9px;letter-spacing:1.4px}
-.footer b{color:#9baabd}
-@media(max-width:850px){.shell{grid-template-columns:1fr}.sidebar{display:none}.main{padding:26px 24px 22px}.workspace{grid-template-columns:1fr}.feature-card{min-height:230px}.hero{padding-top:36px}}
-@media(max-width:520px){body{padding:0}.shell{border-radius:0;min-height:100vh;border:0}.main{padding:22px 17px}.topbar{padding-bottom:18px}.hero{padding-top:31px}h1{font-size:38px}.command-card,.feature-card,.email-card{padding:18px}.command-form{flex-direction:column}.submit-button{padding:13px}.footer{font-size:8px}}
-
-/* Voice2Tube visual refinement: muted plum, soft lavender and warm charcoal */
-:root {
-  --bg: #101014;
-  --panel: #19171d;
-  --panel-2: #211d25;
-  --line: #39313d;
-  --text: #f2eef2;
-  --muted: #aaa0ac;
-  --soft: #d2c7d3;
-  --accent: #b7a0b5;
-  --accent-2: #927b91;
-  --success: #9aafa3;
-  --danger: #c58d98;
+.secondary-button{padding:10px 13px;border:1px solid #e8ddec;border-radius:11px;background:#fff;color:#806c89;font-size:10px}
+.secondary-button:hover{background:#f8f1fb}
+.footer{display:flex;justify-content:space-between;gap:10px;margin-top:auto;padding-top:24px;color:#a99cac;font-size:9px;letter-spacing:1.2px}
+.footer b{color:#a66acb}
+@media(max-width:900px){
+ body{padding:18px}.app-shell{grid-template-columns:1fr;min-height:calc(100vh - 36px)}
+ .sidebar{display:none}.main{padding:25px 28px 22px}
+ .workspace{grid-template-columns:minmax(0,1fr) minmax(230px,.8fr)}
 }
-body {
-  background:
-    radial-gradient(ellipse at 18% 0%, rgba(126, 91, 119, .12), transparent 34%),
-    radial-gradient(ellipse at 90% 90%, rgba(107, 83, 103, .08), transparent 32%),
-    var(--bg);
+@media(max-width:650px){
+ body{padding:0;background:linear-gradient(145deg,#f8e8e5,#eee6f7 70%,#e8e4f7)}
+ .app-shell{width:100%;min-height:100vh;border:0;border-radius:0;display:block;background:rgba(255,255,255,.32)}
+ .main{padding:20px 18px 18px}.topbar{padding-bottom:15px}
+ .hero{padding:27px 2px 13px}h1{font-size:34px;letter-spacing:-1.5px}
+ .hero-copy{max-width:330px;font-size:12px}
+ .workspace{grid-template-columns:1fr;gap:14px;margin-top:13px}
+ .command-card,.feature-card,.email-card{padding:18px;border-radius:21px}
+ .mic-orb{width:154px;height:154px}.mic-area{padding:12px 0 17px}
+ .feature-card{min-height:0}.feature-illustration{height:95px}.feature-illustration .mini-orb{width:82px;height:82px}
+ .feature-card h2{font-size:20px}.examples{grid-template-columns:1fr 1fr;gap:8px}
+ .example{padding:10px;font-size:9px}
+ .command-form{flex-direction:column}.submit-button{min-height:44px}
+ .footer{padding-top:19px;font-size:8px}
 }
-.shell {
-  background: rgba(25, 23, 29, .96);
-  border-color: rgba(190, 164, 187, .15);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, .3);
-}
-.sidebar { background: rgba(17, 16, 21, .72); border-color: var(--line); }
-.brand-icon {
-  background: #352b37;
-  border-color: #554457;
-  color: #e0d0df;
-}
-.nav-item { color: #b2a8b5; }
-.nav-item.active, .nav-item:hover {
-  background: rgba(154, 122, 151, .13);
-  border-color: rgba(173, 143, 169, .2);
-  color: #f0e8f0;
-}
-.nav-icon, .sidebar-foot span { color: #b69db4; }
-.note-card {
-  border-color: #403442;
-  background: linear-gradient(145deg, rgba(70, 51, 68, .34), rgba(35, 29, 38, .48));
-}
-.online { color: #a8b7ad; }
-.online i { background: #9aafa3; box-shadow: 0 0 0 4px rgba(154, 175, 163, .09); }
-.eyebrow { color: #bba7b9; }
-.eyebrow:before { background: #9d8299; }
-h1 span { color: #c3a9bf; }
-.command-card, .feature-card, .email-card {
-  background: linear-gradient(150deg, rgba(39, 33, 42, .96), rgba(27, 25, 32, .98));
-  border-color: #403642;
-  box-shadow: 0 14px 35px rgba(0, 0, 0, .16);
-}
-.card-heading strong { color: #d5c6d5; }
-.mic-wrap {
-  background: radial-gradient(circle, #443747 0%, #302735 59%, rgba(48, 39, 53, .16) 72%);
-  border-color: #69556a;
-}
-.mic-wrap:before { border-color: rgba(190, 158, 185, .18); }
-.mic-wrap:after { border-color: rgba(190, 158, 185, .1); }
-.mic-button {
-  background: #c9b7c8;
-  color: #2a202b;
-  border-color: #e0d1df;
-  box-shadow: 0 7px 20px rgba(0, 0, 0, .24);
-}
-.mic-button:hover { background: #e0d3df; }
-.mic-button.listening {
-  background: #a9bdb0;
-  color: #1e2a23;
-  animation: pulse 1.3s infinite;
-}
-@keyframes pulse {
-  50% { box-shadow: 0 0 0 10px rgba(154, 175, 163, .1), 0 7px 20px rgba(0,0,0,.22); }
-}
-.command-input, .field {
-  background: #151319;
-  border-color: #493d4b;
-}
-.command-input:focus, .field:focus { border-color: #a88da5; }
-.submit-button, .open-button {
-  border-color: #bba5b9;
-  background: #bda9bc;
-  color: #241d27;
-}
-.submit-button:hover, .open-button:hover { background: #d7c8d6; }
-.example {
-  background: rgba(18, 16, 21, .38);
-  border-color: #433847;
-  color: #c9bdcb;
-}
-.example b { color: #eadfea; }
-.result-card { background: #201b24; border-color: #443847; }
-.result-link { color: #d1bdd0; border-color: #806a7e; }
-.field-label { color: #b6a6b7; }
-.secondary-button { border-color: #554758; color: #d2c4d3; }
-.secondary-button:hover { background: #352a38; }
-.footer b { color: #bda8bd; }
-button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visible {
-  outline: 2px solid #bda8bd;
-  outline-offset: 3px;
-}
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
-}
-
+@media(max-width:380px){.examples{grid-template-columns:1fr}.online{font-size:8px}.breadcrumb{font-size:11px}}
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;transition-duration:.01ms!important;scroll-behavior:auto!important}}
 </style>
 </head>
 <body>
-<div class="shell">
+<div class="app-shell">
   <aside class="sidebar">
-    <a class="brand" href="/"><span class="brand-icon">◉</span><span>Voice2Tube<small>VOICE CONTROLLED AI</small></span></a>
-    <div class="side-label">YOUR WORKSPACE</div>
+    <a class="brand" href="/"><span class="brand-mark">✦</span><span>Voice2Tube<small>YOUR VOICE ASSISTANT</small></span></a>
+    <div class="side-caption">YOUR WORKSPACE</div>
     <button class="nav-item active" type="button"><span class="nav-icon">⌂</span> Assistant</button>
-    <button class="nav-item" type="button" onclick="document.getElementById('typedCommand').focus()"><span class="nav-icon">⌕</span> New command</button>
-    <div class="sidebar-bottom">
-      <div class="note-card"><strong>A little more hands-free.</strong><p>Find music and videos on YouTube, or create a polished email with a simple voice command.</p></div>
-      <div class="sidebar-foot">SIMPLE COMMANDS. SMARTER FLOW. <span>✦</span></div>
-    </div>
+    <button class="nav-item" type="button" onclick="document.getElementById('typedCommand').focus()"><span class="nav-icon">＋</span> New command</button>
+    <div class="sidebar-spacer"></div>
+    <div class="tip-card"><div class="tip-icon">✧</div><strong>A little more hands-free.</strong><p>Find your next song or prepare a thoughtful email with one simple voice command.</p></div>
+    <div class="sidebar-foot">SIMPLE COMMANDS · SMOOTHER DAYS</div>
   </aside>
   <main class="main">
     <header class="topbar"><div class="breadcrumb">Workspace <span>/</span> <strong>Assistant</strong></div><div class="online"><i></i> READY WHEN YOU ARE</div></header>
     <section class="hero">
       <div class="eyebrow">YOUR PERSONAL VOICE ASSISTANT</div>
-      <h1>Speak naturally.<br><span>Get things done.</span></h1>
-      <p class="hero-copy">Play a song on YouTube or create an email — just tell Voice2Tube what you need.</p>
+      <h1>Good things happen<br>when you <span>just speak.</span></h1>
+      <p class="hero-copy">A calmer way to play what you love and get everyday tasks done.</p>
     </section>
     <section class="workspace">
       <div class="command-card">
-        <div class="card-heading"><strong>VOICE COMMAND</strong><span>MICROPHONE</span></div>
+        <div class="card-heading"><strong>VOICE ASSISTANT</strong><span>VOICE · TEXT</span></div>
         <div class="mic-area">
-          <div class="mic-wrap"><button id="mic" class="mic-button" type="button" aria-label="Start voice command">🎙</button></div>
-          <div id="status" class="status" role="status" aria-live="polite">Tap the microphone to start speaking</div>
+          <div class="mic-orb"><span class="orb-gloss"></span><button id="mic" class="mic-button" type="button" aria-label="Start voice command" aria-pressed="false">🎙</button></div>
+          <div id="status" class="status" role="status" aria-live="polite">Tap the microphone and say hello</div>
           <div class="hint" id="voiceHint">Allow microphone access when your browser asks</div>
         </div>
         <div class="divider-label">OR TYPE YOUR COMMAND</div>
         <form class="command-form" id="commandForm">
-          <input class="command-input" id="typedCommand" type="text" maxlength="300" placeholder="e.g. Play Believer by Imagine Dragons" autocomplete="off" aria-label="Type your command">
-          <button class="submit-button" type="submit">Run command ↗</button>
+          <input class="command-input" id="typedCommand" type="text" maxlength="300" placeholder="Try “Play my favourite song”" autocomplete="off" aria-label="Type your command">
+          <button class="submit-button" type="submit">Send command&nbsp; ↗</button>
         </form>
         <div class="result-card" id="youtubeResult">
           <div class="result-top"><strong>YouTube command received</strong><span>READY TO PLAY</span></div>
-          <p style="font-size:11px;color:#9aa6b2;margin:0 0 12px">Voice2Tube will take you directly to the matching YouTube video.</p>
+          <p style="font-size:11px;color:#9b8fa0;margin:0 0 12px">Voice2Tube will take you directly to the matching YouTube video.</p>
           <a class="result-link" id="youtubeLink" href="#" target="_blank" rel="noopener noreferrer">Open YouTube video ↗</a>
         </div>
         <div class="email-card" id="editor">
@@ -248,17 +209,18 @@ button:focus-visible, a:focus-visible, input:focus-visible, textarea:focus-visib
       </div>
       <aside class="feature-card">
         <div>
-          <div class="feature-top">WHAT CAN I DO FOR YOU?</div>
-          <h2>One assistant.<br>Two useful actions.</h2>
-          <p>Use a natural phrase. You can speak it or type it in the command box.</p>
+          <div class="feature-top">MADE FOR EVERYDAY MOMENTS</div>
+          <h2>One assistant.<br>Two simple ways to help.</h2>
+          <p>Talk naturally or type a quick command. Voice2Tube takes care of the next step.</p>
+          <div class="feature-illustration"><div class="mini-orb"></div></div>
         </div>
         <div class="examples">
-          <div class="example"><b>♪ YouTube</b><br>“Play a song” or “Play Believer”</div>
-          <div class="example"><b>✉ Gmail</b><br>“Create an email to my professor about an assignment extension”</div>
+          <div class="example"><b>♫ &nbsp;YouTube</b><br>“Play a song” or “Play Believer”</div>
+          <div class="example"><b>✉ &nbsp;Gmail</b><br>“Create an email to my professor about an assignment extension”</div>
         </div>
       </aside>
     </section>
-    <footer class="footer"><span>VOICE2TUBE <b>✳</b></span><span>YOUR VOICE. YOUR WORKFLOW.</span></footer>
+    <footer class="footer"><span>VOICE2TUBE <b>✦</b></span><span>YOUR VOICE. YOUR FLOW.</span></footer>
   </main>
 </div>
 <script>
