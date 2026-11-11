@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#090a10">
+  <meta name="description" content="Voice2Tube — a voice-controlled YouTube search assistant.">
+  <title>Voice2Tube — Your voice. Your videos.</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+  <div class="ambient ambient-one"></div><div class="ambient ambient-two"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="/" aria-label="Voice2Tube home">
+        <span class="brand-mark"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.8c0-.8.9-1.3 1.6-.9l12.1 6.9a1.4 1.4 0 0 1 0 2.4L6.6 20.1c-.7.4-1.6-.1-1.6-.9V4.8Z" fill="currentColor"/></svg></span>
+        <span>voice<span class="brand-accent">2</span>tube</span>
+      </a>
+      <div class="side-label">WORKSPACE</div>
+      <button class="nav-item active" id="homeNav"><span class="nav-icon">⌂</span> Home</button>
+      <button class="nav-item" id="historyNav"><span class="nav-icon">↺</span> Recent searches</button>
+      <div class="sidebar-bottom">
+        <div class="status-card"><span class="status-dot"></span><div><strong>AI assistant ready</strong><small>Voice input available</small></div></div>
+        <div class="sidebar-foot">MADE TO FIND YOUR FLOW <span>✦</span></div>
+      </div>
+    </aside>
+
+    <main class="main-content">
+      <header class="topbar">
+        <div class="breadcrumb">Workspace <span>/</span> <strong id="crumbCurrent">Home</strong></div>
+        <div class="topbar-right"><span class="live-indicator"><i></i> SYSTEM ONLINE</span><span class="avatar">V</span></div>
+      </header>
+
+      <section class="hero" id="homeView">
+        <div class="eyebrow"><span class="eyebrow-line"></span> YOUR PERSONAL YOUTUBE ASSISTANT</div>
+        <h1>What would you like<br>to <span>watch today?</span></h1>
+        <p class="hero-copy">Just say it. Or type it. I'll find the video and bring it right here.</p>
+
+        <section class="command-panel" aria-label="YouTube voice search">
+          <div class="panel-top"><span class="panel-label"><span class="sparkle">✳</span> VOICE COMMAND</span><span class="shortcut">SPEAK OR TYPE</span></div>
+          <div class="voice-stage">
+            <div class="orb-wrap" id="orbWrap">
+              <div class="orb-ring ring-a"></div><div class="orb-ring ring-b"></div>
+              <button class="mic-button" id="micButton" aria-label="Start voice search"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="3" width="6" height="12" rx="3"></rect><path d="M5.5 11.5a6.5 6.5 0 0 0 13 0M12 18v3m-4 0h8"></path></svg></button>
+            </div>
+            <div class="voice-status" id="voiceStatus">Tap the microphone to speak</div>
+            <div class="voice-hint" id="voiceHint">Try “Play lo-fi music” or “Find Python tutorials”</div>
+          </div>
+          <form class="search-form" id="searchForm">
+            <label class="sr-only" for="queryInput">Search YouTube</label>
+            <span class="search-icon">⌕</span>
+            <input id="queryInput" type="text" maxlength="200" placeholder="What do you want to watch?" autocomplete="off">
+            <button class="search-button" type="submit">Search <span>↗</span></button>
+          </form>
+          <div class="panel-footer"><label for="languageSelect">VOICE LANGUAGE</label><select id="languageSelect"><option value="en-IN">English (India)</option><option value="en-US">English (US)</option><option value="hi-IN">Hindi</option><option value="ta-IN">Tamil</option><option value="te-IN">Telugu</option><option value="bn-IN">Bengali</option></select><span class="privacy-note">⌁ Voice is processed by your browser</span></div>
+        </section>
+
+        <div class="quick-prompts"><span>QUICK SEARCHES</span><button data-query="Lo-fi music for focus">♫ Focus music</button><button data-query="Best travel destinations">✧ Travel inspiration</button><button data-query="Learn Python for beginners">⌘ Learn something</button></div>
+      </section>
+
+      <section class="results-section hidden" id="resultsSection">
+        <div class="section-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR RESULT</div><h2>Found for you</h2></div><button class="text-button" id="newSearchButton">＋ New search</button></div>
+        <div class="result-card">
+          <div class="player-wrap" id="playerWrap"><div class="player-placeholder"><span class="play-symbol">▶</span><p>Your video will appear here</p></div></div>
+          <div class="video-details"><div class="video-tag"><span></span> YOUTUBE VIDEO</div><h3 id="videoTitle">Video title</h3><p id="videoChannel">YouTube</p><a class="watch-link" id="watchLink" href="#" target="_blank" rel="noopener noreferrer">Watch on YouTube <span>↗</span></a></div>
+        </div>
+      </section>
+
+      <section class="history-section hidden" id="historyView">
+        <div class="section-heading"><div><div class="eyebrow"><span class="eyebrow-line"></span> YOUR ACTIVITY</div><h2>Recent searches</h2><p class="history-subtitle">Pick up where you left off.</p></div><button class="text-button" id="clearHistoryButton">Clear history</button></div>
+        <div class="history-list" id="historyList"></div>
+        <div class="empty-history hidden" id="emptyHistory"><span>◷</span><h3>No searches yet</h3><p>Your recent YouTube searches will show up here.</p><button class="search-button" id="historyHomeButton">Start exploring ↗</button></div>
+      </section>
+
+      <footer class="page-footer"><span>VOICE2TUBE <b>✳</b></span><span>SEARCH LESS. WATCH MORE.</span></footer>
+    </main>
+  </div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>
