@@ -171,6 +171,7 @@ let recognition;
 let listening = false;
 let lastCommand = "";
 let emailGenerated = false;
+let lastGeneratedEmailCommand = "";
 let generatingEmail = false;
 let youtubeTab = null;
 
@@ -249,7 +250,7 @@ async function processCommand(command) {
       status.textContent = "Your email is already being generated…";
       return;
     }
-    if (emailGenerated && command === lastCommand) {
+    if (emailGenerated && command === lastGeneratedEmailCommand) {
       status.textContent = "Email already generated. You can edit the draft below.";
       return;
     }
@@ -266,6 +267,7 @@ async function processCommand(command) {
       if (!response.ok || !data.success) throw Error(data.message || "Email request failed");
       showEmail(data);
       emailGenerated = true;
+      lastGeneratedEmailCommand = command;
     } catch (error) {
       console.error(error);
       status.textContent = error.message || "Email generation failed. Please try again.";
