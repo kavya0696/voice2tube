@@ -3,26 +3,27 @@ import unittest
 from app import create_app
 
 
-class Voice2TubeAppTests(unittest.TestCase):
+class VoiceTubeAppTests(unittest.TestCase):
     def setUp(self):
         self.client = create_app().test_client()
 
     def test_home_page(self):
         response = self.client.get("/")
         self.assertEqual(response.status_code, 200)
-        self.assertIn(b"Voice2Tube", response.data)
+        self.assertIn(b"VoiceTube", response.data)
+        self.assertIn(b"typedCommand", response.data)
 
     def test_health(self):
         response = self.client.get("/health")
         self.assertEqual(response.status_code, 200)
-        self.assertEqual(response.get_json()["service"], "Voice2Tube")
+        self.assertEqual(response.get_json()["status"], "ok")
 
-    def test_search_requires_query(self):
-        response = self.client.post("/api/search", json={"query": "  "})
+    def test_email_requires_command(self):
+        response = self.client.post("/agent", json={"command": ""})
         self.assertEqual(response.status_code, 400)
 
-    def test_search_rejects_long_query(self):
-        response = self.client.post("/api/search", json={"query": "x" * 201})
+    def test_youtube_requires_command(self):
+        response = self.client.post("/youtube/play", json={"command": ""})
         self.assertEqual(response.status_code, 400)
 
 
