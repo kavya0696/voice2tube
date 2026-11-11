@@ -44,9 +44,9 @@ h1 span{color:#aebcce}
 .card-heading span{font-size:9px;color:#82909e;letter-spacing:1.2px}
 .mic-area{display:flex;flex-direction:column;align-items:center;padding:16px 0 20px}
 .mic-wrap{width:112px;height:112px;border-radius:50%;display:grid;place-items:center;background:radial-gradient(circle,#344252 0%,#283440 58%,rgba(40,52,64,.18) 70%);border:1px solid #526174;position:relative}
-.mic-wrap:before,.mic-wrap:after{content:"";position:absolute;inset:-9px;border:1px solid rgba(160,177,197,.16);border-radius:50%}
-.mic-wrap:after{inset:-18px;border-color:rgba(160,177,197,.09)}
-.mic-button{width:66px;height:66px;border:1px solid #728398;border-radius:50%;background:#d5dde5;color:#26323e;display:grid;place-items:center;font-size:24px;box-shadow:0 8px 24px rgba(0,0,0,.22);transition:transform .2s,background .2s}
+.mic-wrap:before,.mic-wrap:after{content:"";position:absolute;inset:-9px;border:1px solid rgba(160,177,197,.16);border-radius:50%;pointer-events:none}
+.mic-wrap:after{inset:-18px;border-color:rgba(160,177,197,.09);pointer-events:none}
+.mic-button{position:relative;z-index:1;width:66px;height:66px;border:1px solid #728398;border-radius:50%;background:#d5dde5;color:#26323e;display:grid;place-items:center;font-size:24px;box-shadow:0 8px 24px rgba(0,0,0,.22);transition:transform .2s,background .2s}
 .mic-button:hover{transform:translateY(-2px);background:#edf1f5}
 .mic-button.listening{background:#a8c0b3;color:#17251e;animation:pulse 1.3s infinite}
 .mic-button:disabled{opacity:.45;cursor:not-allowed}
@@ -156,7 +156,9 @@ textarea.field{min-height:145px;resize:vertical;line-height:1.55}
   </main>
 </div>
 <script>
-const $ = id => document.getElementById(id);
+"use strict";
+
+const $ = (id) => document.getElementById(id);
 const mic = $("mic");
 const status = $("status");
 const editor = $("editor");
@@ -166,24 +168,28 @@ const body = $("body");
 const typedCommand = $("typedCommand");
 const youtubeResult = $("youtubeResult");
 const youtubeLink = $("youtubeLink");
-const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+const voiceHint = $("voiceHint");
+
+const SpeechRecognitionAPI =
+  window.SpeechRecognition || window.webkitSpeechRecognition;
+
 let recognition = null;
 let listening = false;
 let finalTranscript = "";
-let lastCommand = "";
+let interimTranscript = "";
+let recognitionFailed = false;
+let generatingEmail = false;
 let emailGenerated = false;
 let lastGeneratedEmailCommand = "";
-let generatingEmail = false;
-let youtubeTab = null;
 
 const speechErrors = {
-  "not-allowed": "Microphone permission was denied. Click the lock icon beside the address bar, allow Microphone, then reload this page.",
-  "service-not-allowed": "The browser's speech-recognition service is blocked. Check browser permissions or try Chrome/Edge with internet access.",
-  "audio-capture": "No microphone was detected. Connect or enable a microphone, then try again.",
-  "network": "Speech recognition could not reach the browser's speech service. Check your internet connection and try again.",
-  "no-speech": "I didn't hear anything. Move closer to your microphone and try again.",
-  "language-not-supported": "This browser does not support the selected recognition language. Try English (India).",
-  "aborted": "Voice input was stopped."
+  "not-allowed": "Microphone permission is blocked. Allow microphone access for this site in your browser settings, then reload.",
+  "service-not-allowed": "Your browser blocked its speech service. Try the latest Chrome or Edge and check your internet connection.",
+  "audio-capture": "No working microphone was detected. Check Windows microphone settings and your selected input device.",
+  "network": "The browser speech service could not connect. Check your internet connection, VPN, or firewall.",
+  "no-speech": "No speech was detected. Move closer to the microphone and try again.",
+  "language-not-supported": "The selected recognition language is unavailable. Try changing the browser language or using Chrome.",
+  "aborted": "Voice recognition was stopped."
 };
 
 function setListening(active) {
@@ -191,162 +197,77 @@ function setListening(active) {
   mic.classList.toggle("listening", active);
   mic.textContent = active ? "■" : "🎙";
   mic.setAttribute("aria-label", active ? "Stop voice command" : "Start voice command");
+  mic.setAttribute("aria-pressed", String(active));
 }
 
-if (!window.isSecureContext) {
-  status.textContent = "Microphone access needs a secure connection. Open this app on localhost or its HTTPS Render URL.";
-  $("voiceHint").textContent = "HTTP on a network IP may block microphone access";
-  mic.disabled = true;
-} else if (!SR) {
-  status.textContent = "This browser does not support voice recognition. Type your command below.";
-  $("voiceHint").textContent = "Open this app in the latest Google Chrome or Microsoft Edge";
-  mic.disabled = true;
-} else {
-  recognition = new SR();
-  recognition.lang = "en-IN";
-  recognition.continuous = false;
-  recognition.interimResults = true;
-  recognition.maxAlternatives = 1;
-
-  recognition.onstart = () => {
-    finalTranscript = "";
-    setListening(true);
-    status.textContent = "Listening… speak now";
-    $("voiceHint").textContent = "Speak clearly, then pause briefly to submit your command";
-  };
-
-  recognition.onresult = event => {
-    let interimTranscript = "";
-    for (let i = event.resultIndex; i < event.results.length; i++) {
-      const transcript = event.results[i][0].transcript;
-      if (event.results[i].isFinal) finalTranscript += transcript;
-      else interimTranscript += transcript;
-    }
-    const visibleText = (finalTranscript + " " + interimTranscript).trim();
-    if (visibleText) {
-      typedCommand.value = visibleText;
-      status.textContent = interimTranscript
-        ? "Hearing: " + interimTranscript
-        : "Command captured. Processing…";
-    }
-  };
-
-  recognition.onnomatch = () => {
-    status.textContent = "I couldn't understand that. Please try again or type your command.";
-  };
-
-  recognition.onerror = event => {
-    setListening(false);
-    const message = speechErrors[event.error] || ("Voice recognition error: " + event.error);
-    status.textContent = message;
-    $("voiceHint").textContent = "You can still type a command below. For voice, check microphone permission and browser support.";
-  };
-
-  recognition.onend = () => {
-    setListening(false);
-    const command = finalTranscript.trim() || typedCommand.value.trim();
-    if (command && status.textContent.startsWith("Command captured")) {
-      lastCommand = command;
-      processCommand(command);
-    } else if (command && status.textContent.startsWith("Hearing:")) {
-      lastCommand = command;
-      processCommand(command);
-    } else if (!command && status.textContent.startsWith("Listening")) {
-      status.textContent = "No speech detected. Tap the microphone and try again.";
-    }
-  };
-
-  mic.addEventListener("click", () => {
-    if (listening) {
-      recognition.stop();
-      return;
-    }
-    try {
-      typedCommand.value = "";
-      finalTranscript = "";
-      status.textContent = "Starting microphone…";
-      recognition.start();
-    } catch (error) {
-      console.error("Speech recognition start failed:", error);
-      setListening(false);
-      status.textContent = "Could not start voice recognition. If it is already active, wait a moment and try again.";
-    }
-  });
+function setStatus(message, hint) {
+  status.textContent = message;
+  if (hint) voiceHint.textContent = hint;
 }
-
-$("commandForm").addEventListener("submit", event => {
-  event.preventDefault();
-  const command = typedCommand.value.trim();
-  if (!command) {
-    status.textContent = "Please type a command first.";
-    typedCommand.focus();
-    return;
-  }
-  lastCommand = command;
-  processCommand(command);
-});
 
 function isGmail(command) {
   return /\b(gmail|e-?mail|mail)\b/i.test(command);
 }
 
-function isYouTube(command) {
-  return !isGmail(command) && command.trim().length > 0;
-}
-
 async function processCommand(command) {
-  const gmail = isGmail(command);
-  const youtube = isYouTube(command);
+  const cleanCommand = command.trim();
+  if (!cleanCommand) {
+    setStatus("I didn't receive a command. Please try again or type below.");
+    return;
+  }
 
-  if (gmail) {
+  if (isGmail(cleanCommand)) {
     if (generatingEmail) {
-      status.textContent = "Your email is already being generated…";
+      setStatus("Your email is already being generated…");
       return;
     }
-    if (emailGenerated && command === lastGeneratedEmailCommand) {
-      status.textContent = "Email already generated. You can edit the draft below.";
+    if (emailGenerated && cleanCommand === lastGeneratedEmailCommand) {
+      setStatus("This email draft is already ready. You can edit it below.");
+      editor.scrollIntoView({behavior: "smooth", block: "nearest"});
       return;
     }
+
     generatingEmail = true;
     youtubeResult.style.display = "none";
-    status.textContent = "Creating your email…";
+    setStatus("Creating your email…", "Please wait while your email draft is prepared.");
     try {
       const response = await fetch("/agent", {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({command: command})
+        body: JSON.stringify({command: cleanCommand})
       });
-      const data = await response.json();
-      if (!response.ok || !data.success) throw Error(data.message || "Email request failed");
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok || !data.success) {
+        throw new Error(data.message || "The email request failed.");
+      }
       showEmail(data);
       emailGenerated = true;
-      lastGeneratedEmailCommand = command;
+      lastGeneratedEmailCommand = cleanCommand;
     } catch (error) {
-      console.error(error);
-      status.textContent = error.message || "Email generation failed. Please try again.";
+      console.error("Email request failed:", error);
+      setStatus(error.message || "Email generation failed. Please try again.");
     } finally {
       generatingEmail = false;
     }
     return;
   }
 
-  if (youtube) {
-    editor.style.display = "none";
-    status.textContent = "Finding your video…";
-    try {
-      const response = await fetch("/youtube/play", {
-        method: "POST",
-        headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({command: command})
-      });
-      const data = await response.json();
-      if (!response.ok || !data.success) throw Error(data.message || "YouTube request failed");
-      playYouTube(data);
-    } catch (error) {
-      console.error(error);
-      status.textContent = error.message || "YouTube request failed. Please try again.";
+  editor.style.display = "none";
+  setStatus("Finding your video…", "Searching YouTube. This may take a few seconds.");
+  try {
+    const response = await fetch("/youtube/play", {
+      method: "POST",
+      headers: {"Content-Type": "application/json"},
+      body: JSON.stringify({command: cleanCommand})
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok || !data.success) {
+      throw new Error(data.message || "YouTube could not find a matching video.");
     }
-    return;
+    showYouTubeResult(data);
+  } catch (error) {
+    console.error("YouTube request failed:", error);
+    setStatus(error.message || "YouTube search failed. Please try again.");
   }
 }
 
@@ -356,11 +277,121 @@ function showEmail(data) {
   subject.value = data.subject || "";
   body.value = data.body || "";
   editor.style.display = "block";
-  status.textContent = "Email draft ready. Review and edit it before opening Gmail.";
+  setStatus("Your email draft is ready. Review it before opening Gmail.");
   editor.scrollIntoView({behavior: "smooth", block: "nearest"});
 }
 
-$("open").onclick = () => {
+function showYouTubeResult(data) {
+  youtubeLink.href = data.url;
+  youtubeResult.style.display = "block";
+  setStatus("Your video was found. Select the link below to open it in YouTube.");
+  youtubeResult.scrollIntoView({behavior: "smooth", block: "nearest"});
+}
+
+function startVoiceRecognition() {
+  if (!recognition) {
+    setStatus("Voice recognition is not available in this browser. Please use Chrome or Edge, or type your command.");
+    return;
+  }
+
+  if (listening) {
+    recognition.stop();
+    return;
+  }
+
+  finalTranscript = "";
+  interimTranscript = "";
+  recognitionFailed = false;
+  typedCommand.value = "";
+  setStatus("Starting microphone…", "If your browser asks, choose Allow.");
+
+  try {
+    recognition.start();
+  } catch (error) {
+    console.error("Could not start speech recognition:", error);
+    setListening(false);
+    setStatus(
+      error.name === "InvalidStateError"
+        ? "Voice recognition is already starting. Wait a moment and try again."
+        : "The microphone could not start. Reload the page and check browser microphone permissions."
+    );
+  }
+}
+
+if (!window.isSecureContext) {
+  mic.disabled = true;
+  setStatus("Microphone access requires HTTPS or localhost.", "Open the HTTPS Render website or http://127.0.0.1:5000.");
+} else if (!SpeechRecognitionAPI) {
+  mic.disabled = true;
+  setStatus("This browser does not support speech recognition.", "Use the latest Google Chrome or Microsoft Edge. You can still type commands.");
+} else {
+  recognition = new SpeechRecognitionAPI();
+  recognition.lang = "en-IN";
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
+
+  recognition.onstart = () => {
+    setListening(true);
+    setStatus("Listening… speak now.", "Speak clearly, then pause briefly when you finish.");
+  };
+
+  recognition.onresult = (event) => {
+    interimTranscript = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const text = event.results[i][0].transcript;
+      if (event.results[i].isFinal) {
+        finalTranscript += text + " ";
+      } else {
+        interimTranscript += text;
+      }
+    }
+
+    const currentText = (finalTranscript + interimTranscript).trim();
+    if (currentText) {
+      typedCommand.value = currentText;
+      setStatus(
+        interimTranscript ? "Hearing: " + interimTranscript : "Command captured. Finishing…",
+        "Your recognized words will be sent when you finish speaking."
+      );
+    }
+  };
+
+  recognition.onerror = (event) => {
+    recognitionFailed = true;
+    setListening(false);
+    const message = speechErrors[event.error] || ("Speech recognition error: " + event.error);
+    setStatus(message, "You can type a command below. If this repeats, check Chrome/Edge microphone and internet settings.");
+    console.error("Speech recognition error:", event.error, event.message || "");
+  };
+
+  recognition.onnomatch = () => {
+    setStatus("I couldn't understand that. Please speak again or type your command.");
+  };
+
+  recognition.onend = () => {
+    setListening(false);
+    if (recognitionFailed) return;
+
+    const command = (finalTranscript || interimTranscript || typedCommand.value).trim();
+    if (command) {
+      typedCommand.value = command;
+      setStatus("Command captured. Processing…", "Sending your command to Voice2Tube.");
+      processCommand(command);
+    } else {
+      setStatus("No speech detected. Tap the microphone and try again.");
+    }
+  };
+
+  mic.addEventListener("click", startVoiceRecognition);
+}
+
+$("commandForm").addEventListener("submit", (event) => {
+  event.preventDefault();
+  processCommand(typedCommand.value);
+});
+
+$("open").addEventListener("click", () => {
   const url = "https://mail.google.com/mail/u/0/?" + new URLSearchParams({
     view: "cm",
     fs: "1",
@@ -368,26 +399,13 @@ $("open").onclick = () => {
     su: subject.value,
     body: body.value
   });
-  const win = window.open(url, "Voice2TubeGmail");
-  if (!win) status.textContent = "Please allow popups for this site to open Gmail.";
-};
+  const popup = window.open(url, "_blank", "noopener");
+  if (!popup) setStatus("Please allow pop-ups for this site to open Gmail.");
+});
 
-$("regen").onclick = () => {
-  status.textContent = "Edit the email draft above, then open it in Gmail.";
-};
-
-function playYouTube(data) {
-  youtubeLink.href = data.url;
-  youtubeResult.style.display = "block";
-  if (!youtubeTab || youtubeTab.closed) {
-    youtubeTab = window.open(data.url, "Voice2TubeYouTube");
-  } else {
-    youtubeTab.location.href = data.url;
-    youtubeTab.focus();
-  }
-  status.textContent = youtubeTab ? "Your video is opening in YouTube." : "Your video is ready. If a new tab did not open, use the link below."
-  youtubeResult.scrollIntoView({behavior: "smooth", block: "nearest"});
-}
+$("regen").addEventListener("click", () => {
+  setStatus("You can edit the draft above, then open it in Gmail.");
+});
 </script>
 </body>
 </html>
