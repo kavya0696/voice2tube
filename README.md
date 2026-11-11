@@ -6,10 +6,10 @@ Voice2Tube is a Flask-based voice assistant built from the original `agent` proj
 
 - Voice commands using the browser's Web Speech API.
 - Text command input as an alternative to speaking.
-- YouTube song/video search and playback in a new browser tab.
+- YouTube song/video search with direct playback navigation.
 - Gmail email drafting with Gemini AI.
 - Review and edit the generated email before opening it in Gmail.
-- Responsive dark interface with a restrained slate-blue accent palette.
+- Responsive pastel lavender and peach interface with a recent-search sidebar.
 
 ## Example commands
 
@@ -74,15 +74,20 @@ Never commit real API keys. Use Render's Environment settings for deployed secre
 - `POST /youtube/play` — accepts JSON `{"command":"play a song"}` and returns a YouTube playback URL.
 - `POST /agent` — accepts JSON `{"command":"create email ..."}` and returns an editable email draft.
 
-## Deploy to Render
+## Deploy the live application
 
-1. Push this repository to GitHub.
-2. Create a **Web Service** in Render and connect the repository.
-3. Runtime: Python 3.
-4. Build command: `pip install -r requirements.txt`.
-5. Start command: `gunicorn wsgi:app`.
-6. Add `GEMINI_API_KEY` in Render's Environment settings to enable email drafting.
-7. Deploy and open the generated Render URL.
+**GitHub Pages cannot host this application.** Voice2Tube uses a Python Flask backend, and GitHub Pages only serves static files; it cannot run Python server-side code. The `github.io` URL may therefore show this README instead of the working application.
+
+This repository now includes a `render.yaml` Blueprint for deployment on Render:
+
+1. Sign in to [Render](https://render.com/) and choose **New + → Blueprint**.
+2. Connect the GitHub account and select `kavya0696/voice2tube`.
+3. Render reads `render.yaml` and configures the Flask web service.
+4. In the service's Environment settings, add `GEMINI_API_KEY` with your own Gemini API key. Keep it secret; do not commit it to GitHub.
+5. Deploy the service and wait for the deployment to finish.
+6. Open the generated `https://voice2tube.onrender.com`-style URL shown by Render (the exact URL is assigned by Render).
+
+Use that Render URL as your **live project/demo link**. Keep the GitHub repository URL as your **source-code link**. The app's microphone, Flask routes, YouTube lookup and Gmail drafting need the Flask service running.
 
 ## Browser and service notes
 
