@@ -181,6 +181,15 @@ let recognitionFailed = false;
 let generatingEmail = false;
 let emailGenerated = false;
 let lastGeneratedEmailCommand = "";
+let youtubeWindow = null;
+
+// Reserve a tab during the user's click so Chrome is less likely to block
+// navigation after the asynchronous YouTube search has completed.
+function reserveYouTubeTab() {
+  if (!youtubeWindow || youtubeWindow.closed) {
+    youtubeWindow = window.open("about:blank", "_blank");
+  }
+}
 
 const speechErrors = {
   "not-allowed": "Microphone permission is blocked. Allow microphone access for this site in your browser settings, then reload.",
@@ -217,6 +226,8 @@ async function processCommand(command) {
   }
 
   if (isGmail(cleanCommand)) {
+    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
+    youtubeWindow = null;
     if (generatingEmail) {
       setStatus("Your email is already being generated…");
       return;
@@ -282,9 +293,34 @@ function showEmail(data) {
 }
 
 function showYouTubeResult(data) {
-  youtubeLink.href = data.url;
+  // The backend returns an autoplay-enabled embed URL. Convert it to the
+  // normal YouTube watch page so the video opens directly in YouTube.
+  let watchUrl = data.url;
+  try {
+    const parsed = new URL(data.url);
+    const videoId = parsed.pathname.split("/").filter(Boolean).pop();
+    if (videoId) {
+      watchUrl = "https://www.youtube.com/watch?v=" + encodeURIComponent(videoId) + "&autoplay=1";
+    }
+  } catch (error) {
+    console.warn("Could not convert YouTube URL:", error);
+  }
+
+  youtubeLink.href = watchUrl;
   youtubeResult.style.display = "block";
-  setStatus("Your video was found. Select the link below to open it in YouTube.");
+
+  if (youtubeWindow && !youtubeWindow.closed) {
+    youtubeWindow.location.replace(watchUrl);
+    youtubeWindow = null;
+    setStatus("Opening YouTube and starting your video…", "If Chrome pauses playback, press Play once in the YouTube tab.");
+  } else {
+    const opened = window.open(watchUrl, "_blank");
+    if (opened) {
+      setStatus("Opening YouTube and starting your video…", "If Chrome pauses playback, press Play once in the YouTube tab.");
+    } else {
+      setStatus("Your video is ready, but Chrome blocked the new tab. Select Open YouTube video below.", "Allow pop-ups for Voice2Tube to open videos automatically.");
+    }
+  }
   youtubeResult.scrollIntoView({behavior: "smooth", block: "nearest"});
 }
 
@@ -304,6 +340,7 @@ function startVoiceRecognition() {
     return;
   }
 
+  reserveYouTubeTab();
   finalTranscript = "";
   interimTranscript = "";
   recognitionFailed = false;
@@ -362,6 +399,8 @@ if (!window.isSecureContext) {
 
   recognition.onerror = (event) => {
     recognitionFailed = true;
+    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
+    youtubeWindow = null;
     setListening(false);
     const message = speechErrors[event.error] || ("Speech recognition error: " + event.error);
     setStatus(message, "You can type a command below. If this repeats, check Chrome/Edge microphone and internet settings.");
@@ -382,6 +421,8 @@ if (!window.isSecureContext) {
       setStatus("Command captured. Processing…", "Sending your command to Voice2Tube.");
       processCommand(command);
     } else {
+      if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
+      youtubeWindow = null;
       setStatus("No speech detected. Tap the microphone and try again.");
     }
   };
@@ -397,6 +438,7 @@ window.addEventListener("error", (event) => {
 
 $("commandForm").addEventListener("submit", (event) => {
   event.preventDefault();
+  reserveYouTubeTab();
   processCommand(typedCommand.value);
 });
 
