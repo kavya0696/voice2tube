@@ -123,7 +123,7 @@ textarea.field{min-height:145px;resize:vertical;line-height:1.55}
         </form>
         <div class="result-card" id="youtubeResult">
           <div class="result-top"><strong>YouTube command received</strong><span>READY TO PLAY</span></div>
-          <p style="font-size:11px;color:#9aa6b2;margin:0 0 12px">Your video is opening in a new tab.</p>
+          <p style="font-size:11px;color:#9aa6b2;margin:0 0 12px">Voice2Tube will take you directly to the matching YouTube video.</p>
           <a class="result-link" id="youtubeLink" href="#" target="_blank" rel="noopener noreferrer">Open YouTube video ↗</a>
         </div>
         <div class="email-card" id="editor">
@@ -181,15 +181,6 @@ let recognitionFailed = false;
 let generatingEmail = false;
 let emailGenerated = false;
 let lastGeneratedEmailCommand = "";
-let youtubeWindow = null;
-
-// Reserve a tab during the user's click so Chrome is less likely to block
-// navigation after the asynchronous YouTube search has completed.
-function reserveYouTubeTab() {
-  if (!youtubeWindow || youtubeWindow.closed) {
-    youtubeWindow = window.open("about:blank", "_blank");
-  }
-}
 
 const speechErrors = {
   "not-allowed": "Microphone permission is blocked. Allow microphone access for this site in your browser settings, then reload.",
@@ -221,15 +212,11 @@ function isGmail(command) {
 async function processCommand(command) {
   const cleanCommand = command.trim();
   if (!cleanCommand) {
-    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
-    youtubeWindow = null;
     setStatus("I didn't receive a command. Please try again or type below.");
     return;
   }
 
   if (isGmail(cleanCommand)) {
-    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
-    youtubeWindow = null;
     if (generatingEmail) {
       setStatus("Your email is already being generated…");
       return;
@@ -280,8 +267,6 @@ async function processCommand(command) {
     showYouTubeResult(data);
   } catch (error) {
     console.error("YouTube request failed:", error);
-    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
-    youtubeWindow = null;
     setStatus(error.message || "YouTube search failed. Please try again.");
   }
 }
@@ -297,8 +282,7 @@ function showEmail(data) {
 }
 
 function showYouTubeResult(data) {
-  // The backend returns an autoplay-enabled embed URL. Convert it to the
-  // normal YouTube watch page so the video opens directly in YouTube.
+  // Convert the backend's autoplay embed URL into a normal YouTube watch URL.
   let watchUrl = data.url;
   try {
     const parsed = new URL(data.url);
@@ -310,22 +294,11 @@ function showYouTubeResult(data) {
     console.warn("Could not convert YouTube URL:", error);
   }
 
+  // Navigate this tab instead of opening a blank popup. This avoids Chrome
+  // blocking a new tab after the asynchronous YouTube search has completed.
   youtubeLink.href = watchUrl;
-  youtubeResult.style.display = "block";
-
-  if (youtubeWindow && !youtubeWindow.closed) {
-    youtubeWindow.location.replace(watchUrl);
-    youtubeWindow = null;
-    setStatus("Opening YouTube and starting your video…", "If Chrome pauses playback, press Play once in the YouTube tab.");
-  } else {
-    const opened = window.open(watchUrl, "_blank");
-    if (opened) {
-      setStatus("Opening YouTube and starting your video…", "If Chrome pauses playback, press Play once in the YouTube tab.");
-    } else {
-      setStatus("Your video is ready, but Chrome blocked the new tab. Select Open YouTube video below.", "Allow pop-ups for Voice2Tube to open videos automatically.");
-    }
-  }
-  youtubeResult.scrollIntoView({behavior: "smooth", block: "nearest"});
+  setStatus("Opening YouTube and starting your video…", "Redirecting to the matching YouTube video.");
+  window.location.assign(watchUrl);
 }
 
 function startVoiceRecognition() {
@@ -344,7 +317,6 @@ function startVoiceRecognition() {
     return;
   }
 
-  reserveYouTubeTab();
   finalTranscript = "";
   interimTranscript = "";
   recognitionFailed = false;
@@ -403,8 +375,6 @@ if (!window.isSecureContext) {
 
   recognition.onerror = (event) => {
     recognitionFailed = true;
-    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
-    youtubeWindow = null;
     setListening(false);
     const message = speechErrors[event.error] || ("Speech recognition error: " + event.error);
     setStatus(message, "You can type a command below. If this repeats, check Chrome/Edge microphone and internet settings.");
@@ -425,8 +395,6 @@ if (!window.isSecureContext) {
       setStatus("Command captured. Processing…", "Sending your command to Voice2Tube.");
       processCommand(command);
     } else {
-      if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
-      youtubeWindow = null;
       setStatus("No speech detected. Tap the microphone and try again.");
     }
   };
@@ -442,7 +410,6 @@ window.addEventListener("error", (event) => {
 
 $("commandForm").addEventListener("submit", (event) => {
   event.preventDefault();
-  reserveYouTubeTab();
   processCommand(typedCommand.value);
 });
 
