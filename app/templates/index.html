@@ -221,6 +221,8 @@ function isGmail(command) {
 async function processCommand(command) {
   const cleanCommand = command.trim();
   if (!cleanCommand) {
+    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
+    youtubeWindow = null;
     setStatus("I didn't receive a command. Please try again or type below.");
     return;
   }
@@ -278,6 +280,8 @@ async function processCommand(command) {
     showYouTubeResult(data);
   } catch (error) {
     console.error("YouTube request failed:", error);
+    if (youtubeWindow && !youtubeWindow.closed) youtubeWindow.close();
+    youtubeWindow = null;
     setStatus(error.message || "YouTube search failed. Please try again.");
   }
 }
