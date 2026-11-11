@@ -289,8 +289,13 @@ function showYouTubeResult(data) {
 }
 
 function startVoiceRecognition() {
+  setStatus("Microphone button clicked. Checking voice recognition…");
+  if (!window.isSecureContext) {
+    setStatus("Microphone access requires HTTPS or localhost.", "Open the HTTPS Render website or http://127.0.0.1:5000.");
+    return;
+  }
   if (!recognition) {
-    setStatus("Voice recognition is not available in this browser. Please use Chrome or Edge, or type your command.");
+    setStatus("Chrome has not exposed its speech-recognition service on this page.", "Use the latest Chrome, allow microphone access, and try the local Flask address or HTTPS deployment. You can type a command meanwhile.");
     return;
   }
 
@@ -319,11 +324,9 @@ function startVoiceRecognition() {
 }
 
 if (!window.isSecureContext) {
-  mic.disabled = true;
   setStatus("Microphone access requires HTTPS or localhost.", "Open the HTTPS Render website or http://127.0.0.1:5000.");
 } else if (!SpeechRecognitionAPI) {
-  mic.disabled = true;
-  setStatus("This browser does not support speech recognition.", "Use the latest Google Chrome or Microsoft Edge. You can still type commands.");
+  setStatus("Speech recognition is unavailable in this Chrome session.", "The microphone button will explain the issue when clicked. You can still type commands.");
 } else {
   recognition = new SpeechRecognitionAPI();
   recognition.lang = "en-IN";
@@ -383,8 +386,14 @@ if (!window.isSecureContext) {
     }
   };
 
-  mic.addEventListener("click", startVoiceRecognition);
 }
+
+mic.addEventListener("click", startVoiceRecognition);
+
+window.addEventListener("error", (event) => {
+  console.error("Voice2Tube page error:", event.message, event.filename, event.lineno);
+  setStatus("A page script error occurred. Open the browser console for details.", "Please share the first red error from Chrome DevTools Console.");
+});
 
 $("commandForm").addEventListener("submit", (event) => {
   event.preventDefault();
