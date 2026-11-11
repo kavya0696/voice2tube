@@ -4,8 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#11151b">
-<meta name="description" content="VoiceTube — a voice-controlled YouTube and Gmail assistant.">
-<title>VoiceTube — Voice Controlled AI Assistant</title>
+<meta name="description" content="Voice2Tube — a voice-controlled YouTube and Gmail assistant.">
+<title>Voice2Tube — Voice Controlled AI Assistant</title>
 <style>
 :root{--bg:#11151b;--panel:#191f27;--panel-2:#202833;--line:#303a46;--text:#edf0f3;--muted:#9aa5b1;--soft:#c3ccd5;--accent:#a9b6c8;--accent-2:#7f91a8;--success:#8eae9d;--danger:#c58d8d;--radius:20px;--shadow:0 24px 70px rgba(0,0,0,.24)}
 *{box-sizing:border-box}
@@ -92,7 +92,7 @@ textarea.field{min-height:145px;resize:vertical;line-height:1.55}
 <body>
 <div class="shell">
   <aside class="sidebar">
-    <a class="brand" href="/"><span class="brand-icon">◉</span><span>VoiceTube<small>VOICE CONTROLLED AI</small></span></a>
+    <a class="brand" href="/"><span class="brand-icon">◉</span><span>Voice2Tube<small>VOICE CONTROLLED AI</small></span></a>
     <div class="side-label">YOUR WORKSPACE</div>
     <button class="nav-item active" type="button"><span class="nav-icon">⌂</span> Assistant</button>
     <button class="nav-item" type="button" onclick="document.getElementById('typedCommand').focus()"><span class="nav-icon">⌕</span> New command</button>
@@ -106,7 +106,7 @@ textarea.field{min-height:145px;resize:vertical;line-height:1.55}
     <section class="hero">
       <div class="eyebrow">YOUR PERSONAL VOICE ASSISTANT</div>
       <h1>Speak naturally.<br><span>Get things done.</span></h1>
-      <p class="hero-copy">Play a song on YouTube or create an email — just tell VoiceTube what you need.</p>
+      <p class="hero-copy">Play a song on YouTube or create an email — just tell Voice2Tube what you need.</p>
     </section>
     <section class="workspace">
       <div class="command-card">
@@ -152,7 +152,7 @@ textarea.field{min-height:145px;resize:vertical;line-height:1.55}
         </div>
       </aside>
     </section>
-    <footer class="footer"><span>VOICETUBE <b>✳</b></span><span>YOUR VOICE. YOUR WORKFLOW.</span></footer>
+    <footer class="footer"><span>VOICE2TUBE <b>✳</b></span><span>YOUR VOICE. YOUR WORKFLOW.</span></footer>
   </main>
 </div>
 <script>
@@ -167,56 +167,111 @@ const typedCommand = $("typedCommand");
 const youtubeResult = $("youtubeResult");
 const youtubeLink = $("youtubeLink");
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition;
+let recognition = null;
 let listening = false;
+let finalTranscript = "";
 let lastCommand = "";
 let emailGenerated = false;
 let lastGeneratedEmailCommand = "";
 let generatingEmail = false;
 let youtubeTab = null;
 
-if (!SR) {
-  status.textContent = "Voice recognition is unavailable in this browser. You can type a command below.";
-  $("voiceHint").textContent = "Try Chrome or Edge for microphone support";
+const speechErrors = {
+  "not-allowed": "Microphone permission was denied. Click the lock icon beside the address bar, allow Microphone, then reload this page.",
+  "service-not-allowed": "The browser's speech-recognition service is blocked. Check browser permissions or try Chrome/Edge with internet access.",
+  "audio-capture": "No microphone was detected. Connect or enable a microphone, then try again.",
+  "network": "Speech recognition could not reach the browser's speech service. Check your internet connection and try again.",
+  "no-speech": "I didn't hear anything. Move closer to your microphone and try again.",
+  "language-not-supported": "This browser does not support the selected recognition language. Try English (India).",
+  "aborted": "Voice input was stopped."
+};
+
+function setListening(active) {
+  listening = active;
+  mic.classList.toggle("listening", active);
+  mic.textContent = active ? "■" : "🎙";
+  mic.setAttribute("aria-label", active ? "Stop voice command" : "Start voice command");
+}
+
+if (!window.isSecureContext) {
+  status.textContent = "Microphone access needs a secure connection. Open this app on localhost or its HTTPS Render URL.";
+  $("voiceHint").textContent = "HTTP on a network IP may block microphone access";
+  mic.disabled = true;
+} else if (!SR) {
+  status.textContent = "This browser does not support voice recognition. Type your command below.";
+  $("voiceHint").textContent = "Open this app in the latest Google Chrome or Microsoft Edge";
   mic.disabled = true;
 } else {
   recognition = new SR();
-  recognition.lang = "en-US";
+  recognition.lang = "en-IN";
   recognition.continuous = false;
-  recognition.interimResults = false;
+  recognition.interimResults = true;
+  recognition.maxAlternatives = 1;
 
   recognition.onstart = () => {
-    listening = true;
-    mic.classList.add("listening");
-    status.textContent = "Listening… speak your command";
+    finalTranscript = "";
+    setListening(true);
+    status.textContent = "Listening… speak now";
+    $("voiceHint").textContent = "Speak clearly, then pause briefly to submit your command";
   };
+
+  recognition.onresult = event => {
+    let interimTranscript = "";
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      const transcript = event.results[i][0].transcript;
+      if (event.results[i].isFinal) finalTranscript += transcript;
+      else interimTranscript += transcript;
+    }
+    const visibleText = (finalTranscript + " " + interimTranscript).trim();
+    if (visibleText) {
+      typedCommand.value = visibleText;
+      status.textContent = interimTranscript
+        ? "Hearing: " + interimTranscript
+        : "Command captured. Processing…";
+    }
+  };
+
+  recognition.onnomatch = () => {
+    status.textContent = "I couldn't understand that. Please try again or type your command.";
+  };
+
+  recognition.onerror = event => {
+    setListening(false);
+    const message = speechErrors[event.error] || ("Voice recognition error: " + event.error);
+    status.textContent = message;
+    $("voiceHint").textContent = "You can still type a command below. For voice, check microphone permission and browser support.";
+  };
+
   recognition.onend = () => {
-    listening = false;
-    mic.classList.remove("listening");
+    setListening(false);
+    const command = finalTranscript.trim() || typedCommand.value.trim();
+    if (command && status.textContent.startsWith("Command captured")) {
+      lastCommand = command;
+      processCommand(command);
+    } else if (command && status.textContent.startsWith("Hearing:")) {
+      lastCommand = command;
+      processCommand(command);
+    } else if (!command && status.textContent.startsWith("Listening")) {
+      status.textContent = "No speech detected. Tap the microphone and try again.";
+    }
   };
-  recognition.onerror = e => {
-    listening = false;
-    mic.classList.remove("listening");
-    status.textContent = "Voice error: " + e.error + ". You can type your command instead.";
-  };
-  recognition.onresult = e => {
-    const text = e.results[0][0].transcript.trim();
-    if (!text) {
-      status.textContent = "No command detected. Please try again.";
+
+  mic.addEventListener("click", () => {
+    if (listening) {
+      recognition.stop();
       return;
     }
-    lastCommand = text;
-    typedCommand.value = text;
-    processCommand(text);
-  };
-  mic.onclick = () => {
-    if (listening) return;
     try {
+      typedCommand.value = "";
+      finalTranscript = "";
+      status.textContent = "Starting microphone…";
       recognition.start();
-    } catch (e) {
-      status.textContent = "Microphone is busy. Please try again in a moment.";
+    } catch (error) {
+      console.error("Speech recognition start failed:", error);
+      setListening(false);
+      status.textContent = "Could not start voice recognition. If it is already active, wait a moment and try again.";
     }
-  };
+  });
 }
 
 $("commandForm").addEventListener("submit", event => {
@@ -315,7 +370,7 @@ $("open").onclick = () => {
     su: subject.value,
     body: body.value
   });
-  const win = window.open(url, "VoiceTubeGmail");
+  const win = window.open(url, "Voice2TubeGmail");
   if (!win) status.textContent = "Please allow popups for this site to open Gmail.";
 };
 
@@ -327,12 +382,12 @@ function playYouTube(data) {
   youtubeLink.href = data.url;
   youtubeResult.style.display = "block";
   if (!youtubeTab || youtubeTab.closed) {
-    youtubeTab = window.open(data.url, "VoiceTubeYouTube");
+    youtubeTab = window.open(data.url, "Voice2TubeYouTube");
   } else {
     youtubeTab.location.href = data.url;
     youtubeTab.focus();
   }
-  status.textContent = youtubeTab ? "Your video is opening in YouTube." : "Allow popups, or use the Open YouTube video link below.";
+  status.textContent = youtubeTab ? "Your video is opening in YouTube." : "Your video is ready. If a new tab did not open, use the link below."
   youtubeResult.scrollIntoView({behavior: "smooth", block: "nearest"});
 }
 </script>
