@@ -1,97 +1,98 @@
-# Voice2Tube — Voice Controlled YouTube Assistant
+# VoiceTube — Voice Controlled YouTube & Gmail Assistant
 
-Voice2Tube is a focused YouTube assistant that lets you search by speaking or typing, preview the result in an embedded player, and revisit recent searches.
+VoiceTube is a Flask-based voice assistant built from the original `agent` project. It keeps the original YouTube playback and Gmail email-drafting modules, with a refreshed, responsive interface.
 
-## Highlights
+## Features
 
-- Voice search using the browser Web Speech API.
-- Editable speech transcript before submitting a search.
-- Text-based search as a fallback.
-- Language selector for English (India/US), Hindi, Tamil, Telugu and Bengali (availability depends on the browser and operating system).
-- Embedded privacy-enhanced YouTube player and a direct Watch on YouTube link.
-- Recent searches stored locally in the browser, with replay and clear-history controls.
-- Responsive dark, minimal-premium interface with subtle violet AI accents.
-- Flask JSON API with input validation and a health endpoint.
-- Optional YouTube Data API v3 integration using `YOUTUBE_API_KEY`.
+- Voice commands using the browser's Web Speech API.
+- Text command input as an alternative to speaking.
+- YouTube song/video search and playback in a new browser tab.
+- Gmail email drafting with Gemini AI.
+- Review and edit the generated email before opening it in Gmail.
+- Responsive dark interface with a restrained slate-blue accent palette.
+
+## Example commands
+
+- `Play Believer by Imagine Dragons`
+- `Play lo-fi music`
+- `Create an email to professor@example.com asking for an assignment extension`
+
+For Gmail, include the words **create email** in the command. For YouTube, you can type a song/video name or say a command such as **play [name]**.
 
 ## Tech stack
 
-- Frontend: HTML5, CSS3, vanilla JavaScript (ES6), Fetch API and Web Speech API.
+- Frontend: HTML, CSS and vanilla JavaScript.
 - Backend: Python 3.11+, Flask and Flask-CORS.
-- Deployment: Gunicorn (Render-ready).
+- YouTube: public YouTube search page lookup and embedded playback URL.
+- Email generation: Google Gemini API.
+- Deployment: Gunicorn; compatible with Render Web Services.
 
 ## Run locally (Windows PowerShell)
 
-1. Open PowerShell in the project folder.
-2. Create and activate a virtual environment:
-
-   ```powershell
-   py -3.11 -m venv .venv
-   .\.venv\Scripts\Activate.ps1
-   ```
-
-3. Install dependencies:
-
-   ```powershell
-   python -m pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-
-4. Start the app:
-
-   ```powershell
-   python -m flask --app wsgi:app run --debug
-   ```
-
-5. Open http://127.0.0.1:5000 in Chrome or Edge. Allow microphone permission when prompted.
-
-## Optional: YouTube Data API
-
-For more consistent search results, create a YouTube Data API v3 key in Google Cloud Console, enable the YouTube Data API v3, and set `YOUTUBE_API_KEY` in your environment or hosting dashboard. Never commit a real API key.
-
-PowerShell for the current terminal session:
+From the project folder:
 
 ```powershell
-$env:YOUTUBE_API_KEY = "YOUR_API_KEY"
+py -3.11 -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+Set the Gemini API key in the current PowerShell session (required for email generation):
+
+```powershell
+$env:GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
+```
+
+Optional model setting:
+
+```powershell
+$env:GEMINI_MODEL = "gemini-3.6-flash"
+```
+
+Start the app:
+
+```powershell
 python -m flask --app wsgi:app run --debug
 ```
 
-Without an API key, the app makes a best-effort request to YouTube's public search results page. YouTube may change or restrict this page, so the fallback is not guaranteed. The project does not use Gemini or claim to be an LLM-based video recommendation engine.
+Open http://127.0.0.1:5000 in Chrome or Edge. Allow microphone permission for voice commands. Text commands work without microphone permission.
 
-## API
+## Environment variables
 
-### POST `/api/search`
+| Variable | Required | Purpose |
+|---|---|---|
+| `GEMINI_API_KEY` | For Gmail email drafting | Google Gemini API key |
+| `GEMINI_MODEL` | No | Gemini model name; defaults to `gemini-3.6-flash` |
 
-Request:
+Never commit real API keys. Use Render's Environment settings for deployed secrets.
 
-```json
-{ "query": "lofi music for studying" }
-```
+## API endpoints
 
-Success response contains `video_id`, `title`, `channel`, `thumbnail`, `watch_url`, and `embed_url`.
-
-### GET `/health`
-
-Returns service health status.
+- `GET /` — assistant interface.
+- `GET /health` — health check.
+- `POST /youtube/play` — accepts JSON `{"command":"play a song"}` and returns a YouTube playback URL.
+- `POST /agent` — accepts JSON `{"command":"create email ..."}` and returns an editable email draft.
 
 ## Deploy to Render
 
 1. Push this repository to GitHub.
-2. In Render, create a **Web Service** connected to this repository.
+2. Create a **Web Service** in Render and connect the repository.
 3. Runtime: Python 3.
-4. Build command: `pip install -r requirements.txt`
-5. Start command: `gunicorn wsgi:app`
-6. Optional environment variable: `YOUTUBE_API_KEY`.
-7. Deploy. Render supplies the `PORT` environment variable; Gunicorn is configured by Render's web-service runtime.
+4. Build command: `pip install -r requirements.txt`.
+5. Start command: `gunicorn wsgi:app`.
+6. Add `GEMINI_API_KEY` in Render's Environment settings to enable email drafting.
+7. Deploy and open the generated Render URL.
 
-## Browser notes
+## Browser and service notes
 
-- Voice input requires a supported browser (typically Chrome or Edge) and microphone permission.
-- Speech recognition support and language availability vary by browser and device.
-- Voice recognition is handled by the browser's speech service; it is not an offline speech model.
-- Recent searches stay in the current browser's local storage and are not synced to a server.
-- YouTube playback may be affected by video owner embedding restrictions, regional availability, or browser autoplay policies.
+- Voice input depends on browser support for Web Speech API and microphone permission. Chrome or Edge is recommended.
+- Text commands are available if speech recognition is unavailable.
+- YouTube lookup uses the original project's public search-page parsing approach; it may be affected by YouTube page changes or request restrictions.
+- Gmail draft generation requires a valid Gemini API key and internet access.
+- Opening Gmail or YouTube may require the browser to allow pop-ups.
+- The assistant prepares an email draft and opens Gmail with the draft details; the user reviews and sends it manually.
 
 ## Project scope
 
-This repository is the YouTube-only version of the original voice assistant. Gmail functionality has intentionally been excluded from the product interface and backend.
+This version retains the original Flask routes and YouTube/Gmail service modules. The presentation layer has been refreshed and a typed-command entry point has been added. The original `agent` repository remains separate.
